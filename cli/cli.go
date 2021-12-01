@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"github.com/DisgoOrg/disgo/discord"
+	"github.com/DisgoOrg/disgo/webhook"
 	"github.com/fatih/color"
 	"github.com/purpurmc/papyrus/shared"
 )
@@ -20,7 +22,7 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 	md5 := ""
 	if jenkins.Result == "SUCCESS" {
 		path := fmt.Sprintf("%s-%s-%d", projectName, versionName, buildNumber)
-		shared.DownloadFile(fmt.Sprintf("%s/job/%s/ws/%s", config.CLIConfig.JenkinsURL, projectName, filePath), path) // todo: custom path
+		shared.DownloadFile(fmt.Sprintf("%s/job/%s/%d/artifact/%s", config.CLIConfig.JenkinsURL, projectName, buildNumber, filePath), path) // todo: custom path
 		md5 = shared.GetMD5(path)
 	}
 
@@ -36,4 +38,12 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 	}
 
 	addBuild(project, version, build)
+
+	if config.CLIConfig.Webhook {
+		client := webhook.NewClient(discord.Snowflake(config.CLIConfig.WebhookID), config.CLIConfig.WebhookToken)
+		_, err := client.CreateContent(fmt.Sprintf("Build %d for %s %s (%d) has been uploaded", buildNumber, projectName, versionName, build.Duration))
+		if err != nil {
+			panic(err)
+		}
+	}
 }

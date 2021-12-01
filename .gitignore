@@ -1,13 +1,6 @@
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-vendor/
+!*.go
+!go.*
+!LICENSE
+!README.md
 
-.idea/
-
-*.json
-
+*

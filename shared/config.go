@@ -13,6 +13,9 @@ type Config struct {
 
 type CLIConfig struct {
 	JenkinsURL string `json:"jenkins_url"`
+	Webhook bool `json:"webhook"`
+	WebhookID string `json:"webhook_id"`
+	WebhookToken string `json:"webhook_token"`
 }
 
 func GetConfig() Config {

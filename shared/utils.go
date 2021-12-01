@@ -14,6 +14,9 @@ func Setup() {
 		StoragePath: "/srv/papyrus",
 		CLIConfig: CLIConfig{
 			JenkinsURL: "https://jenkins.example.com",
+			Webhook: false,
+			WebhookID: "",
+			WebhookToken: "",
 		},
 	})
 

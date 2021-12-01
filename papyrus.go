@@ -27,7 +27,6 @@ func main() {
 	}
 
 	config := shared.GetConfig()
-
 	switch environment {
 	case "cli":
 		if argsLength != 4 {
