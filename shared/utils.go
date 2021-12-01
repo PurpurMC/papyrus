@@ -41,6 +41,10 @@ func Setup() {
 				Color: 10038562,
 			},
 		},
+		WebConfig: WebConfig{
+			IP: "localhost:3000",
+			Dev: true,
+		},
 	})
 
 	SaveData(Data{

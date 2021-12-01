@@ -4,6 +4,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/purpurmc/papyrus/cli"
 	"github.com/purpurmc/papyrus/shared"
+	"github.com/purpurmc/papyrus/web"
 	"os"
 	"strconv"
 )
@@ -45,7 +46,7 @@ func main() {
 
 		cli.Run(config, project, version, build, path)
 	case "web":
-		// todo
+		web.Web(config)
 	default:
 		color.Red("Invalid environment, did you build correctly?")
 	}

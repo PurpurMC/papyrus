@@ -9,6 +9,7 @@ import (
 type Config struct {
 	StoragePath string `json:"storage_path"`
 	CLIConfig CLIConfig `json:"cli"`
+	WebConfig WebConfig `json:"web"`
 }
 
 type CLIConfig struct {
@@ -25,6 +26,11 @@ type EmbedConfig struct {
 	Description string `json:"description"`
 	Changes string `json:"changes"`
 	Color int `json:"color"`
+}
+
+type WebConfig struct {
+	IP string `json:"ip"`
+	Dev bool `json:"dev"`
 }
 
 func GetConfig() Config {
