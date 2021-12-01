@@ -14,6 +14,8 @@ func Web(config shared.Config) {
 	router.GET("/v1", getProjects)
 	router.GET("/v1/:project", getProject)
 	router.GET("/v1/:project/:version", getVersion)
+	router.GET("/v1/:project/:version/:build", getBuild)
+	router.GET("/v1/:project/:version/:build/download", downloadBuild)
 
 	err := router.Run(config.WebConfig.IP)
 	if err != nil {

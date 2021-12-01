@@ -55,6 +55,7 @@ func createVersionIfNotExists(project shared.Project, versionName string) shared
 
 func addBuild(project shared.Project, version shared.Version, build shared.Build) {
 	version.Builds = append(version.Builds, build)
+	version.Latest = build
 	saveVersion(project, version)
 }
 

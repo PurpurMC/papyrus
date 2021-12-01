@@ -16,7 +16,8 @@ type Project struct {
 }
 
 type Version struct {
-	Name string    `json:"name"`
+	Name string `json:"name"`
+	Latest Build `json:"latest"`
 	Builds []Build `json:"builds"`
 }
 

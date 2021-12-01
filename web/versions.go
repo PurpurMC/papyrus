@@ -14,16 +14,21 @@ func getVersion(c *gin.Context) {
 		if project.Name == projectName {
 			for _, version := range project.Versions {
 				if version.Name == versionName {
-					c.JSON(200, version) // todo
+					c.JSON(200, gin.H{
+						"project": project.Name,
+						"version": version.Name,
+						"builds": gin.H{
+							"latest": version.Latest.Build,
+							"all": getBuilds(version),
+						},
+					})
 					return
 				}
 			}
-			return
 		}
 	}
 
 	c.JSON(404, gin.H{
-		"error": "project not found",
+		"error": "version not found",
 	})
 }
-
