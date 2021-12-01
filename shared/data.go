@@ -30,6 +30,7 @@ type Build struct {
 	Commits []Commit `json:"commits"`
 	Timestamp int    `json:"timestamp"`
 	MD5 string `json:"md5"`
+	Extension string `json:"extension"`
 }
 
 type Commit struct {

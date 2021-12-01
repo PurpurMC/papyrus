@@ -36,6 +36,7 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 		Commits: nil, // todo
 		Timestamp: jenkins.Timestamp,
 		MD5: md5,
+		Extension: shared.After(filePath, "."),
 	}
 
 	addBuild(project, version, build)
