@@ -61,7 +61,7 @@ func main() {
 	md5 := ""
 	if jenkins.Result == "SUCCESS" {
 		path := fmt.Sprintf("%s-%s-%d", projectName, versionName, buildNumber)
-		downloadFile(fmt.Sprintf("%s/job/%s/%d/artifact/%s", config.JenkinsURL, projectName, buildNumber, filePath), path)
+		downloadFile(fmt.Sprintf("%s/job/%s/ws/%s", config.JenkinsURL, projectName, filePath), path)
 		md5 = getMD5(path)
 	}
 
