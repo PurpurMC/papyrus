@@ -2,10 +2,12 @@
 
 !*.go
 !go.*
+!*.html
 
 !cli/
 !shared/
 !web/
+!web/docs/
 
 !LICENSE
 !README.md

@@ -2,6 +2,8 @@
 
 rm -rf out/
 mkdir out/
+mkdir out/web/
 
 go build -ldflags "-X main.environment=cli" -o out/papyrus
-go build -ldflags "-X main.environment=web" -o out/papyrus-web
+go build -ldflags "-X main.environment=web" -o out/web/papyrus-web
+cp web/docs out/web/ -r

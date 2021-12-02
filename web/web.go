@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/purpurmc/papyrus/shared"
 )
@@ -11,6 +12,7 @@ func Web(config shared.Config) {
 	}
 
 	router := gin.Default()
+	router.Use(static.Serve("/", static.LocalFile("docs/", false)))
 	router.GET("/v1", getProjects)
 	router.GET("/v1/:project", getProject)
 	router.GET("/v1/:project/:version", getVersion)

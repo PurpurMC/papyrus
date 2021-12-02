@@ -25,7 +25,7 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 	if jenkins.Result == "SUCCESS" {
 		path := fmt.Sprintf("%s/%s-%s-%d", config.StoragePath, projectName, versionName, buildNumber)
 		shared.DownloadFile(replaceFilePathVariables(config.CLIConfig.JenkinsFilePath, config, project, buildNumber, filePath), path)
-		md5 = shared.GetMD5(path) // todo: wrong hash
+		md5 = shared.GetMD5(path)
 	}
 
 	build := shared.Build{
