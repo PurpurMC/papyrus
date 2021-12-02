@@ -3,6 +3,7 @@ package web
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/purpurmc/papyrus/shared"
+	"os"
 )
 
 func getVersions(project shared.Project) []string {
@@ -39,4 +40,13 @@ func getCommits(build shared.Build) []gin.H {
 	}
 
 	return commits
+}
+
+func getFileSize(file *os.File) int64 {
+	stat, err := file.Stat()
+	if err != nil {
+		return 0
+	}
+
+	return stat.Size()
 }

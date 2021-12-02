@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/purpurmc/papyrus/shared"
+	"os"
 	"strconv"
 )
 
@@ -89,11 +90,14 @@ func downloadBuild(c *gin.Context) {
 						return
 					}
 
+					config := shared.GetConfig()
 					fileName := fmt.Sprintf("%s-%s-%d", projectName, versionName, build.Build)
+					file, _ := os.Open(fmt.Sprintf("%s/%s", config.StoragePath, fileName))
+
 					c.Header("Content-Type", "application/jar")
 					c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.%s", fileName, build.Extension))
-					// todo: content length
-					c.File(fmt.Sprintf("%s/%s", shared.GetConfig().StoragePath, fileName))
+					c.Header("Content-Length", strconv.FormatInt(getFileSize(file), 10))
+					c.File(fmt.Sprintf("%s/%s", config.StoragePath, fileName))
 				}
 			}
 		}
