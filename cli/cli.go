@@ -24,7 +24,7 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 	md5 := ""
 	if jenkins.Result == "SUCCESS" {
 		path := fmt.Sprintf("%s/%s-%s-%d", config.StoragePath, projectName, versionName, buildNumber)
-		shared.DownloadFile(replaceFilePathVariables(config.CLIConfig.JenkinsFilePath, config, project, buildNumber, filePath), path)
+		shared.DownloadFile("https://api.pl3x.net/v2/purpur/1.17.1/1428/download", path)
 		md5 = shared.GetMD5(path)
 	}
 
@@ -34,7 +34,7 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 		Build: buildNumber,
 		Result: jenkins.Result,
 		Duration: jenkins.Duration,
-		Commits: nil, // todo
+		Commits: getCommits(jenkins),
 		Timestamp: jenkins.Timestamp,
 		MD5: md5,
 		Extension: shared.After(filePath, "."),
@@ -96,8 +96,8 @@ func generateChanges(template string, build shared.Build) string {
 
 func replaceChangesVariables(template string, commit shared.Commit) string {
 	replaced := strings.ReplaceAll(template, "{author}", commit.Author)
-	replaced = strings.ReplaceAll(replaced, "{title}", shared.Before(commit.Description, string('\n')))
-	replaced = strings.ReplaceAll(replaced, "{description}", shared.After(commit.Description, string('\n')))
+	replaced = strings.ReplaceAll(replaced, "{title}", commit.Title)
+	replaced = strings.ReplaceAll(replaced, "{description}", commit.Comment)
 	replaced = strings.ReplaceAll(replaced, "{timestamp}", fmt.Sprintf("%d", commit.Timestamp))
 	replaced = strings.ReplaceAll(replaced, "{hash}", commit.Hash)
 	replaced = strings.ReplaceAll(replaced, "{short_hash}", shared.First(commit.Hash, 7))

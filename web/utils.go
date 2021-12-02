@@ -27,7 +27,7 @@ func getCommits(build shared.Build) []gin.H {
 	for _, commit := range build.Commits {
 		commits = append(commits, gin.H{
 			"author": commit.Author,
-			"description": commit.Description,
+			"description": commit.Comment,
 			"hash": commit.Hash,
 			"email": commit.Email,
 			"timestamp": commit.Timestamp,

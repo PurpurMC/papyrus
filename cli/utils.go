@@ -12,6 +12,24 @@ type JenkinsData struct {
 	Result string `json:"result"`
 	Duration int `json:"duration"`
 	Timestamp int `json:"timestamp"`
+	ChangeSet ChangeSet `json:"changeSet"`
+}
+
+type ChangeSet struct {
+	Commit []Commit `json:"items"`
+}
+
+type Commit struct {
+	Author Author `json:"author"`
+	Title string `json:"msg"`
+	Comment string `json:"comment"`
+	Hash string `json:"commitId"`
+	Email string `json:"authorEmail"`
+	Timestamp int `json:"timestamp"`
+}
+
+type Author struct {
+	Name string `json:"fullName"`
 }
 
 func getJenkinsData(url string, project string, build int) JenkinsData {
@@ -24,6 +42,21 @@ func getJenkinsData(url string, project string, build int) JenkinsData {
 		panic(err)
 	}
 	return responseObject
+}
+
+func getCommits(data JenkinsData) []shared.Commit {
+	var commits []shared.Commit
+	for _, commit := range data.ChangeSet.Commit {
+		commits = append(commits, shared.Commit{
+			Author: commit.Author.Name,
+			Title: commit.Title,
+			Comment: commit.Comment,
+			Hash: commit.Hash,
+			Email: commit.Email,
+			Timestamp: commit.Timestamp,
+		})
+	}
+	return commits
 }
 
 func createProjectIfNotExists(projectName string) shared.Project {

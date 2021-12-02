@@ -36,7 +36,8 @@ type Build struct {
 
 type Commit struct {
 	Author string `json:"author"`
-	Description string `json:"description"`
+	Title string `json:"title"`
+	Comment string `json:"comment"`
 	Hash string `json:"hash"`
 	Email string `json:"email"`
 	Timestamp int `json:"timestamp"`
