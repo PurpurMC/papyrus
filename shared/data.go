@@ -2,6 +2,7 @@ package shared
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -42,7 +43,7 @@ type Commit struct {
 }
 
 func GetData() Data {
-	file, err := ioutil.ReadFile("data.json")
+	file, err := ioutil.ReadFile(fmt.Sprintf("%s/data.json", GetConfig().StoragePath))
 	data := Data{}
 	err = json.Unmarshal(file, &data)
 
@@ -54,7 +55,7 @@ func GetData() Data {
 
 func SaveData(data Data) {
 	jsonBytes, err := json.Marshal(data)
-	err = ioutil.WriteFile("data.json", jsonBytes, os.ModePerm) // todo: location
+	err = ioutil.WriteFile(fmt.Sprintf("%s/data.json", GetConfig().StoragePath), jsonBytes, os.ModePerm)
 
 	if err != nil {
 		panic(err)

@@ -6,6 +6,7 @@ import (
 	"github.com/DisgoOrg/disgo/webhook"
 	"github.com/fatih/color"
 	"github.com/purpurmc/papyrus/shared"
+	"strconv"
 	"strings"
 )
 
@@ -22,9 +23,9 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 
 	md5 := ""
 	if jenkins.Result == "SUCCESS" {
-		path := fmt.Sprintf("%s-%s-%d", projectName, versionName, buildNumber)
-		shared.DownloadFile(fmt.Sprintf("%s/job/%s/%d/artifact/%s", config.CLIConfig.JenkinsURL, projectName, buildNumber, filePath), path) // todo: custom path
-		md5 = shared.GetMD5(path)
+		path := fmt.Sprintf("%s/%s-%s-%d", config.StoragePath, projectName, versionName, buildNumber)
+		shared.DownloadFile(replaceFilePathVariables(config.CLIConfig.JenkinsFilePath, config, project, buildNumber, filePath), path)
+		md5 = shared.GetMD5(path) // todo: wrong hash
 	}
 
 	build := shared.Build{
@@ -63,6 +64,14 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 			panic(err)
 		}
 	}
+}
+
+func replaceFilePathVariables(template string, config shared.Config, project shared.Project, build int, file string) string {
+	replaced := strings.ReplaceAll(template, "{url}", config.CLIConfig.JenkinsURL)
+	replaced = strings.ReplaceAll(replaced, "{project}", project.Name)
+	replaced = strings.ReplaceAll(replaced, "{build}", strconv.Itoa(build))
+	replaced = strings.ReplaceAll(replaced, "{file}", file)
+	return replaced
 }
 
 func replaceVariables(template string, changesTemplate string, build shared.Build) string {

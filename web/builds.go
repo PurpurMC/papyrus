@@ -81,18 +81,19 @@ func downloadBuild(c *gin.Context) {
 						}
 					}
 
-					if build.Result != "success" {
+					println(build.Result)
+					if build.Result != "SUCCESS" {
 						c.JSON(404, gin.H{
 							"error": "build failed, nothing to download",
 						})
 						return
 					}
 
-					path := fmt.Sprintf("%s-%s-%d", projectName, versionName, build.Build)
+					fileName := fmt.Sprintf("%s-%s-%d", projectName, versionName, build.Build)
 					c.Header("Content-Type", "application/jar")
-					c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.%s", path, build.Extension))
+					c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s.%s", fileName, build.Extension))
 					// todo: content length
-					c.File(path)
+					c.File(fmt.Sprintf("%s/%s", shared.GetConfig().StoragePath, fileName))
 				}
 			}
 		}

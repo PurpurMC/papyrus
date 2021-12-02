@@ -21,7 +21,7 @@ func getJenkinsData(url string, project string, build int) JenkinsData {
 	err = json.Unmarshal(responseData, &responseObject)
 
 	if err != nil {
-		panic(err)
+		//panic(err)
 	}
 	return responseObject
 }

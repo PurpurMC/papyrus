@@ -14,6 +14,7 @@ type Config struct {
 
 type CLIConfig struct {
 	JenkinsURL string `json:"jenkins_url"`
+	JenkinsFilePath string `json:"jenkins_file_path"`
 	Webhook bool `json:"webhook"`
 	WebhookID string `json:"webhook_id"`
 	WebhookToken string `json:"webhook_token"`
@@ -34,7 +35,7 @@ type WebConfig struct {
 }
 
 func GetConfig() Config {
-	file, err := ioutil.ReadFile("config.json")
+	file, err := ioutil.ReadFile("/etc/papyrus.json")
 	config := Config{}
 	err = json.Unmarshal(file, &config)
 
@@ -46,7 +47,7 @@ func GetConfig() Config {
 
 func SaveConfig(config Config)  {
 	jsonBytes, err := json.MarshalIndent(config, "", "\t")
-	err = ioutil.WriteFile("config.json", jsonBytes, os.ModePerm) // todo: location
+	err = ioutil.WriteFile("/etc/papyrus.json", jsonBytes, os.ModePerm)
 
 	if err != nil {
 		panic(err)

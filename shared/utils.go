@@ -14,6 +14,7 @@ func Setup() {
 		StoragePath: "/srv/papyrus",
 		CLIConfig: CLIConfig{
 			JenkinsURL: "https://jenkins.example.com",
+			JenkinsFilePath: "{url}/job/{project}/{build}/artifact/{file}",
 			Webhook: false,
 			WebhookID: "",
 			WebhookToken: "",
@@ -25,7 +26,7 @@ func Setup() {
 					"\n" +
 					"**Changes:**\n" +
 					"{changes}",
-				Changes: "- `{hash}` *{title} - {author}*\n",
+				Changes: "- `{short_hash}` *{title} - {author}*\n",
 				Color: 3066993,
 			},
 			FailureEmbed: EmbedConfig{
@@ -45,6 +46,11 @@ func Setup() {
 			Dev: true,
 		},
 	})
+
+	err := os.MkdirAll(GetConfig().StoragePath, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
 
 	SaveData(Data{
 		Projects: nil,
