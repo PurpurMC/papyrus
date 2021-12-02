@@ -24,7 +24,7 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 	md5 := ""
 	if jenkins.Result == "SUCCESS" {
 		path := fmt.Sprintf("%s/%s-%s-%d", config.StoragePath, projectName, versionName, buildNumber)
-		shared.DownloadFile("https://api.pl3x.net/v2/purpur/1.17.1/1428/download", path)
+		shared.DownloadFile(replaceFilePathVariables(config.CLIConfig.JenkinsFilePath, config, project, buildNumber, filePath), path)
 		md5 = shared.GetMD5(path)
 	}
 
