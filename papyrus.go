@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/fatih/color"
 	"github.com/purpurmc/papyrus/cli"
 	"github.com/purpurmc/papyrus/shared"
 	"github.com/purpurmc/papyrus/web"
@@ -9,45 +8,40 @@ import (
 	"strconv"
 )
 
-var environment string
-
 func main() {
 	args := os.Args[1:]
 	argsLength := len(args)
 
-	if argsLength == 1 {
-		switch args[0] {
-		case "setup":
-			shared.Setup()
-		case "reset":
-			shared.Reset()
-		case "debug":
-			shared.PrintDebug()
-		}
+	if argsLength == 0 {
+		shared.PrintUsage()
 		return
 	}
 
 	config := shared.GetConfig()
-	switch environment {
-	case "cli":
-		if argsLength != 4 {
-			// todo: print usage
+	switch args[0] {
+	case "setup":
+		shared.Setup()
+	case "reset":
+		shared.Reset()
+	case "debug":
+		shared.PrintDebug()
+	case "web":
+		web.Web(config)
+	case "add":
+		if argsLength != 5 {
+			shared.PrintUsage()
 			return
 		}
 
-		project := args[0]
-		version := args[1]
-		build, err := strconv.Atoi(args[2])
-		path := args[3]
+		project := args[1]
+		version := args[2]
+		build, err := strconv.Atoi(args[3])
+		path := args[4]
 
 		if err != nil {
 			panic(err)
 		}
 
 		cli.Run(config, project, version, build, path)
-	case "web":
-		web.Web(config)
-	default:
-		color.Red("Invalid environment, did you build correctly?")
 	}
 }

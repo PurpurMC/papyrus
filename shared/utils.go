@@ -10,6 +10,7 @@ import (
 )
 
 func Setup() {
+	fmt.Println("Setting up papyrus...")
 	SaveConfig(Config{
 		StoragePath: "/srv/papyrus",
 		CLIConfig: CLIConfig{
@@ -55,17 +56,32 @@ func Setup() {
 	SaveData(Data{
 		Projects: nil,
 	})
+	fmt.Println("Done.")
 }
 
 func Reset() {
+	fmt.Println("Resetting papyrus...")
 	SaveData(Data{
 		Projects: nil,
 	})
+	fmt.Println("Done.")
+}
+
+func PrintUsage() {
+	fmt.Println("Usage:")
+	fmt.Println("  papyrus [command]")
+	fmt.Println("")
+	fmt.Println("Commands:")
+	fmt.Println("  setup")
+	fmt.Println("  reset")
+	fmt.Println("  debug")
+	fmt.Println("  web")
+	fmt.Println("  add [project] [version] [build] [file-path]")
 }
 
 func PrintDebug() {
+	fmt.Println("Debug:")
 	fmt.Printf("%+v", GetConfig())
-	println("\n\n")
 	fmt.Printf("%+v", GetData())
 }
 
@@ -91,14 +107,6 @@ func DownloadFile(url string, path string) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func Before(string string, sep string) string {
-	i := strings.Index(string, sep)
-	if i == -1 {
-		return string
-	}
-	return string[:i]
 }
 
 func After(string string, sep string) string {

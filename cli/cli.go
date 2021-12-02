@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgo/webhook"
-	"github.com/fatih/color"
 	"github.com/purpurmc/papyrus/shared"
 	"strconv"
 	"strings"
@@ -15,7 +14,7 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 	version := createVersionIfNotExists(project, versionName)
 
 	if doesBuildExist(version, buildNumber) {
-		color.Red("Build %d already exists for the version %s", buildNumber, versionName)
+		fmt.Printf("Build %d already exists for version %s", buildNumber, versionName)
 		return
 	}
 
