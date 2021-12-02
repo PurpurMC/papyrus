@@ -9,7 +9,6 @@ import (
 	"strings"
 )
 
-// Setup todo: cli & web
 func Setup() {
 	SaveConfig(Config{
 		StoragePath: "/srv/papyrus",
@@ -58,8 +57,9 @@ func Reset() {
 	})
 }
 
-// PrintDebug todo: cli & web
 func PrintDebug() {
+	fmt.Printf("%+v", GetConfig())
+	println("\n\n")
 	fmt.Printf("%+v", GetData())
 }
 

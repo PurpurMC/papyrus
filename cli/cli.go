@@ -66,7 +66,7 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 }
 
 func replaceVariables(template string, changesTemplate string, build shared.Build) string {
-	replaced := strings.ReplaceAll(template, "{project}", build.Project)
+	replaced := strings.ReplaceAll(template, "{project}", strings.Title(build.Project))
 	replaced = strings.ReplaceAll(replaced, "{version}", build.Version)
 	replaced = strings.ReplaceAll(replaced, "{build}", fmt.Sprintf("%d", build.Build))
 	replaced = strings.ReplaceAll(replaced, "{result}", build.Result)
