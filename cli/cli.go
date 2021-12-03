@@ -5,16 +5,15 @@ import (
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgo/webhook"
 	"github.com/purpurmc/papyrus/shared"
-	"strconv"
 	"strings"
 )
 
-func Run(config shared.Config, projectName string, versionName string, buildNumber int, filePath string) {
+func Run(config shared.Config, projectName string, versionName string, buildNumber string, filePath string) {
 	project := createProjectIfNotExists(projectName)
 	version := createVersionIfNotExists(project, versionName)
 
 	if doesBuildExist(version, buildNumber) {
-		fmt.Printf("Build %d already exists for version %s", buildNumber, versionName)
+		fmt.Printf("Build %s already exists for version %s", buildNumber, versionName)
 		return
 	}
 
@@ -65,10 +64,10 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 	}
 }
 
-func replaceFilePathVariables(template string, config shared.Config, project shared.Project, build int, file string) string {
+func replaceFilePathVariables(template string, config shared.Config, project shared.Project, build string, file string) string {
 	replaced := strings.ReplaceAll(template, "{url}", config.CLIConfig.JenkinsURL)
 	replaced = strings.ReplaceAll(replaced, "{project}", project.Name)
-	replaced = strings.ReplaceAll(replaced, "{build}", strconv.Itoa(build))
+	replaced = strings.ReplaceAll(replaced, "{build}", build)
 	replaced = strings.ReplaceAll(replaced, "{file}", file)
 	return replaced
 }

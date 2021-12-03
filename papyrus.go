@@ -5,7 +5,6 @@ import (
 	"github.com/purpurmc/papyrus/shared"
 	"github.com/purpurmc/papyrus/web"
 	"os"
-	"strconv"
 )
 
 func main() {
@@ -35,12 +34,8 @@ func main() {
 
 		project := args[1]
 		version := args[2]
-		build, err := strconv.Atoi(args[3])
+		build := args[3]
 		path := args[4]
-
-		if err != nil {
-			panic(err)
-		}
 
 		cli.Run(config, project, version, build, path)
 	}

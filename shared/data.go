@@ -25,7 +25,7 @@ type Version struct {
 type Build struct {
 	Project string `json:"project"`
 	Version string `json:"version"`
-	Build int `json:"build"`
+	Build string `json:"build"`
 	Result string `json:"result"`
 	Duration int     `json:"duration"`
 	Commits []Commit `json:"commits"`

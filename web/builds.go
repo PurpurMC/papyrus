@@ -18,18 +18,18 @@ func getBuild(c *gin.Context) {
 		if project.Name == projectName {
 			for _, version := range project.Versions {
 				if version.Name == versionName {
-					var build *shared.Build
+					build := shared.Build{}
 
 					if buildNumber == "latest" {
-						build = &version.Latest
+						build = version.Latest
 					} else {
 						for _, versionBuild := range version.Builds {
-							if strconv.Itoa(versionBuild.Build) == buildNumber {
-								build = &versionBuild
+							if versionBuild.Build == buildNumber {
+								build = versionBuild
 							}
 						}
 
-						if build == nil {
+						if build.Build == "" {
 							c.JSON(404, gin.H{
 								"error": "build not found",
 							})
@@ -43,7 +43,7 @@ func getBuild(c *gin.Context) {
 						"build": build.Build,
 						"result": build.Result,
 						"duration": build.Duration,
-						"commits": getCommits(*build),
+						"commits": getCommits(build),
 						"timestamp": build.Timestamp,
 						"md5": build.MD5,
 					})
@@ -63,18 +63,18 @@ func downloadBuild(c *gin.Context) {
 		if project.Name == projectName {
 			for _, version := range project.Versions {
 				if version.Name == versionName {
-					var build *shared.Build
+					build := shared.Build{}
 
 					if buildNumber == "latest" {
-						build = &version.Latest
+						build = version.Latest
 					} else {
 						for _, versionBuild := range version.Builds {
-							if strconv.Itoa(versionBuild.Build) == buildNumber {
-								build = &versionBuild
+							if versionBuild.Build == buildNumber {
+								build = versionBuild
 							}
 						}
 
-						if build == nil {
+						if build.Build == "" {
 							c.JSON(404, gin.H{
 								"error": "build not found",
 							})
@@ -82,7 +82,6 @@ func downloadBuild(c *gin.Context) {
 						}
 					}
 
-					println(build.Result)
 					if build.Result != "SUCCESS" {
 						c.JSON(404, gin.H{
 							"error": "build failed, nothing to download",

@@ -5,7 +5,6 @@ import (
 	"github.com/purpurmc/papyrus/shared"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
 type JenkinsData struct {
@@ -32,9 +31,9 @@ type Author struct {
 	Name string `json:"fullName"`
 }
 
-func getJenkinsData(url string, project string, build int) JenkinsData {
+func getJenkinsData(url string, project string, build string) JenkinsData {
 	var responseObject JenkinsData
-	response, err := http.Get(url + "/job/" + project + "/" + strconv.Itoa(build) + "/api/json")
+	response, err := http.Get(url + "/job/" + project + "/" + build + "/api/json")
 	responseData, err := ioutil.ReadAll(response.Body)
 	err = json.Unmarshal(responseData, &responseObject)
 
@@ -94,7 +93,7 @@ func addBuild(project shared.Project, version shared.Version, build shared.Build
 	saveVersion(project, version)
 }
 
-func doesBuildExist(version shared.Version, buildNumber int) bool {
+func doesBuildExist(version shared.Version, buildNumber string) bool {
 	for _, build := range version.Builds {
 		if build.Build == buildNumber {
 			return true

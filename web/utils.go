@@ -14,8 +14,8 @@ func getVersions(project shared.Project) []string {
 	return versions
 }
 
-func getBuilds(version shared.Version) []int {
-	var builds []int
+func getBuilds(version shared.Version) []string {
+	var builds []string
 	for _, build := range version.Builds {
 		builds = append(builds, build.Build)
 	}

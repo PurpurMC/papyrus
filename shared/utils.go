@@ -109,12 +109,20 @@ func DownloadFile(url string, path string) {
 	}
 }
 
-func After(string string, sep string) string {
-	i := strings.Index(string, sep)
+func Before(value string, separator string) string {
+	pos := strings.Index(value, separator)
+	if pos == -1 {
+		return value
+	}
+	return value[0:pos]
+}
+
+func After(string string, separator string) string {
+	i := strings.Index(string, separator)
 	if i == -1 {
 		return string
 	}
-	return string[i+len(sep):]
+	return string[i+len(separator):]
 }
 
 func First(string string, x int) string {
