@@ -16,7 +16,6 @@ func main() {
 		return
 	}
 
-	config := shared.GetConfig()
 	switch args[0] {
 	case "setup":
 		shared.Setup()
@@ -25,7 +24,7 @@ func main() {
 	case "debug":
 		shared.PrintDebug()
 	case "web":
-		web.Web(config)
+		web.Web(shared.GetConfig())
 	case "add":
 		if argsLength != 5 {
 			shared.PrintUsage()
@@ -37,7 +36,7 @@ func main() {
 		build := args[3]
 		path := args[4]
 
-		cli.Add(config, project, version, build, path)
+		cli.Add(shared.GetConfig(), project, version, build, path)
 	case "delete":
 		if argsLength < 2 {
 			shared.PrintUsage()
