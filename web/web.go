@@ -13,11 +13,11 @@ func Web(config shared.Config) {
 
 	router := gin.Default()
 	router.Use(static.Serve("/", static.LocalFile("docs/", false)))
-	router.GET("/v1", getProjects)
-	router.GET("/v1/:project", getProject)
-	router.GET("/v1/:project/:version", getVersion)
-	router.GET("/v1/:project/:version/:build", getBuild)
-	router.GET("/v1/:project/:version/:build/download", downloadBuild)
+	router.GET("/v2", getProjects)
+	router.GET("/v2/:project", getProject)
+	router.GET("/v2/:project/:version", getVersion)
+	router.GET("/v2/:project/:version/:build", getBuild)
+	router.GET("/v2/:project/:version/:build/download", downloadBuild)
 
 	err := router.Run(config.WebConfig.IP)
 	if err != nil {
