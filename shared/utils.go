@@ -77,6 +77,8 @@ func PrintUsage() {
 	fmt.Println("  debug")
 	fmt.Println("  web")
 	fmt.Println("  add [project] [version] [build] [file-path]")
+	fmt.Println("  delete [project <project>|version <project> <version>|build <project> <version> <build>]")
+	fmt.Println("  test-webhook")
 }
 
 func PrintDebug() {

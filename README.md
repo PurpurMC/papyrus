@@ -61,7 +61,3 @@ An example of the command is:
 ```
 papyrus add purpur 1.18 1429 build/libs/purpur.jar
 ```
-
-## Future Commands
-In the future we will have commands to test the webhook system,
-and to delete builds, versions, and projects.

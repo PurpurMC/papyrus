@@ -2,13 +2,11 @@ package cli
 
 import (
 	"fmt"
-	"github.com/DisgoOrg/disgo/discord"
-	"github.com/DisgoOrg/disgo/webhook"
 	"github.com/purpurmc/papyrus/shared"
-	"strings"
+	"os"
 )
 
-func Run(config shared.Config, projectName string, versionName string, buildNumber string, filePath string) {
+func Add(config shared.Config, projectName string, versionName string, buildNumber string, filePath string) {
 	project := createProjectIfNotExists(projectName)
 	version := createVersionIfNotExists(project, versionName)
 
@@ -41,65 +39,104 @@ func Run(config shared.Config, projectName string, versionName string, buildNumb
 	addBuild(project, version, build)
 
 	if config.CLIConfig.Webhook {
-		client := webhook.NewClient(discord.Snowflake(config.CLIConfig.WebhookID), config.CLIConfig.WebhookToken)
-
-		var embedSettings shared.EmbedConfig
-		if build.Result == "SUCCESS" {
-			embedSettings = config.CLIConfig.SuccessEmbed
-		} else {
-			embedSettings = config.CLIConfig.FailureEmbed
-		}
-
-		var embed []discord.Embed
-		embed = append(embed, discord.NewEmbedBuilder().
-			SetTitle(replaceVariables(embedSettings.Title, embedSettings.Changes, build)).
-			SetDescription(replaceVariables(embedSettings.Description, embedSettings.Changes, build)).
-			SetColor(embedSettings.Color).
-			Build())
-
-		_, err := client.CreateEmbeds(embed)
-		if err != nil {
-			panic(err)
-		}
+		sendWebhook(build)
 	}
 }
 
-func replaceFilePathVariables(template string, config shared.Config, project shared.Project, build string, file string) string {
-	replaced := strings.ReplaceAll(template, "{url}", config.CLIConfig.JenkinsURL)
-	replaced = strings.ReplaceAll(replaced, "{project}", project.Name)
-	replaced = strings.ReplaceAll(replaced, "{build}", build)
-	replaced = strings.ReplaceAll(replaced, "{file}", file)
-	return replaced
-}
+func Delete(deletionType string) {
+	args := os.Args[3:]
 
-func replaceVariables(template string, changesTemplate string, build shared.Build) string {
-	replaced := strings.ReplaceAll(template, "{project}", strings.Title(build.Project))
-	replaced = strings.ReplaceAll(replaced, "{version}", build.Version)
-	replaced = strings.ReplaceAll(replaced, "{build}", fmt.Sprintf("%d", build.Build))
-	replaced = strings.ReplaceAll(replaced, "{result}", build.Result)
-	replaced = strings.ReplaceAll(replaced, "{duration}", fmt.Sprintf("%d", build.Duration))
-	replaced = strings.ReplaceAll(replaced, "{changes}", generateChanges(changesTemplate, build))
-	replaced = strings.ReplaceAll(replaced, "{timestamp}", fmt.Sprintf("%d", build.Timestamp))
-	replaced = strings.ReplaceAll(replaced, "{md5}", build.MD5)
-	return replaced
-}
+	switch deletionType {
+	case "project":
+		if len(args) != 1 {
+			shared.PrintUsage()
+			return
+		}
 
-func generateChanges(template string, build shared.Build) string {
-	var changes string
-	for _, commit := range build.Commits {
-		changes += replaceChangesVariables(template, commit)
+		projectName := args[0]
+
+		fmt.Println("Deleting project " + projectName)
+		deleteProject(projectName)
+		fmt.Println("Project deleted")
+		return
+	case "version":
+		if len(args) != 2 {
+			shared.PrintUsage()
+			return
+		}
+
+		projectName := args[0]
+		versionName := args[1]
+
+		fmt.Println("Deleting version " + versionName + " from project " + projectName)
+		deleteVersion(projectName, versionName)
+		fmt.Println("Version deleted")
+		return
+	case "build":
+		if len(args) != 3 {
+			shared.PrintUsage()
+			return
+		}
+
+		projectName := args[0]
+		versionName := args[1]
+		buildNumber := args[2]
+
+		fmt.Println("Deleting build " + buildNumber + " from version " + versionName + " in project " + projectName)
+		deleteBuild(projectName, versionName, buildNumber)
+		fmt.Println("Build deleted")
+		return
+	default:
+		shared.PrintUsage()
 	}
-	return changes
 }
 
-func replaceChangesVariables(template string, commit shared.Commit) string {
-	replaced := strings.ReplaceAll(template, "{author}", commit.Author)
-	replaced = strings.ReplaceAll(replaced, "{title}", commit.Title)
-	replaced = strings.ReplaceAll(replaced, "{description}", commit.Comment)
-	replaced = strings.ReplaceAll(replaced, "{timestamp}", fmt.Sprintf("%d", commit.Timestamp))
-	replaced = strings.ReplaceAll(replaced, "{hash}", commit.Hash)
-	replaced = strings.ReplaceAll(replaced, "{short_hash}", shared.First(commit.Hash, 7))
-	replaced = strings.ReplaceAll(replaced, "{email}", commit.Email)
-	replaced = strings.ReplaceAll(replaced, "{timestamp}", fmt.Sprintf("%d", commit.Timestamp))
-	return replaced
+func TestWebhook() {
+	fmt.Println("Testing webhook")
+	var commits []shared.Commit
+	commits = append(commits, shared.Commit{
+		Author: "ben",
+		Title: "test commit uno",
+		Comment: "test commit uno\n\nthis is a test commit",
+		Hash: "9eabf5b536662000f79978c4d1b6e4eff5c8d785",
+		Email: "ben@omega24.dev",
+		Timestamp: 125155125,
+	})
+
+	commits = append(commits, shared.Commit{
+		Author: "frank",
+		Title: "test commit dos",
+		Comment: "test commit dos\n\nthis is not a test commit",
+		Hash: "29932f3915935d773dc8d52c292cadd81c81071d",
+		Email: "frank@gmail.com",
+		Timestamp: 5919895512,
+	})
+
+	success := shared.Build{
+		Project: "test",
+		Version: "1.0.0",
+		Build: "101",
+		Result: "SUCCESS",
+		Duration: 505,
+		Commits: commits,
+		Timestamp: 1256981234,
+		MD5: "md5",
+		Extension: ".jar",
+	}
+
+	failure := shared.Build{
+		Project: "test",
+		Version: "1.0.0",
+		Build: "101",
+		Result: "FAILURE",
+		Duration: 505,
+		Commits: commits,
+		Timestamp: 1256981234,
+		MD5: "md5",
+		Extension: ".jar",
+	}
+
+	sendWebhook(success)
+	sendWebhook(failure)
+	fmt.Println("Webhook tested")
 }

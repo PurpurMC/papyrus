@@ -37,6 +37,15 @@ func main() {
 		build := args[3]
 		path := args[4]
 
-		cli.Run(config, project, version, build, path)
+		cli.Add(config, project, version, build, path)
+	case "delete":
+		if argsLength < 2 {
+			shared.PrintUsage()
+			return
+		}
+
+		cli.Delete(args[1])
+	case "test-webhook":
+		cli.TestWebhook()
 	}
 }
