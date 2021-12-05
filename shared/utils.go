@@ -16,31 +16,7 @@ func Setup() {
 		CLIConfig: CLIConfig{
 			JenkinsURL: "https://jenkins.example.com",
 			JenkinsFilePath: "{url}/job/{project}/{build}/artifact/{file}",
-			Webhook: false,
-			WebhookID: "",
-			WebhookToken: "",
-			SuccessEmbed: EmbedConfig{
-				Title: "Build Successful",
-				Description: "**Project:** {project} {version}\n" +
-					"**Build:** {build}\n" +
-					"**Status:** {result}\n" +
-					"\n" +
-					"**Changes:**\n" +
-					"{changes}",
-				Changes: "- `{short_hash}` *{title} - {author}*\n",
-				Color: 3066993,
-			},
-			FailureEmbed: EmbedConfig{
-				Title: "Build Failed",
-				Description: "**Project:** {project} {version}\n" +
-					"**Build:** {build}\n" +
-					"**Status:** {result}\n" +
-					"\n" +
-					"**Changes:**\n" +
-					"{changes}",
-				Changes: "- `{short_hash}` *{title} - {author}*\n",
-				Color: 10038562,
-			},
+			PostbuildScript: "",
 		},
 		WebConfig: WebConfig{
 			IP: "localhost:3000",
@@ -78,7 +54,7 @@ func PrintUsage() {
 	fmt.Println("  web")
 	fmt.Println("  add [project] [version] [build] [file-path]")
 	fmt.Println("  delete [project <project>|version <project> <version>|build <project> <version> <build>]")
-	fmt.Println("  test-webhook")
+	fmt.Println("  test-script")
 }
 
 func PrintDebug() {

@@ -44,7 +44,7 @@ func main() {
 		}
 
 		cli.Delete(args[1])
-	case "test-webhook":
-		cli.TestWebhook()
+	case "test-script":
+		cli.TestScript()
 	}
 }

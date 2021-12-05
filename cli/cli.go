@@ -38,8 +38,8 @@ func Add(config shared.Config, projectName string, versionName string, buildNumb
 
 	addBuild(project, version, build)
 
-	if config.CLIConfig.Webhook {
-		sendWebhook(build)
+	if config.CLIConfig.PostbuildScript != "" {
+		runPostbuildScript(build, config.CLIConfig.PostbuildScript)
 	}
 }
 
@@ -91,8 +91,14 @@ func Delete(deletionType string) {
 	}
 }
 
-func TestWebhook() {
-	fmt.Println("Testing webhook")
+func TestScript() {
+	fmt.Println("Testing postbuild script")
+	config := shared.GetConfig()
+	if config.CLIConfig.PostbuildScript == "" {
+		fmt.Println("No postbuild script configured")
+		return
+	}
+
 	var commits []shared.Commit
 	commits = append(commits, shared.Commit{
 		Author: "ben",
@@ -112,7 +118,7 @@ func TestWebhook() {
 		Timestamp: 5919895512,
 	})
 
-	success := shared.Build{
+	build := shared.Build{
 		Project: "test",
 		Version: "1.0.0",
 		Build: "101",
@@ -121,22 +127,9 @@ func TestWebhook() {
 		Commits: commits,
 		Timestamp: 1256981234,
 		MD5: "md5",
-		Extension: ".jar",
+		Extension: "jar",
 	}
 
-	failure := shared.Build{
-		Project: "test",
-		Version: "1.0.0",
-		Build: "101",
-		Result: "FAILURE",
-		Duration: 505,
-		Commits: commits,
-		Timestamp: 1256981234,
-		MD5: "md5",
-		Extension: ".jar",
-	}
-
-	sendWebhook(success)
-	sendWebhook(failure)
-	fmt.Println("Webhook tested")
+	runPostbuildScript(build, config.CLIConfig.PostbuildScript)
+	fmt.Println("Ran postbuild script")
 }

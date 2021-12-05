@@ -15,18 +15,7 @@ type Config struct {
 type CLIConfig struct {
 	JenkinsURL string `json:"jenkins_url"`
 	JenkinsFilePath string `json:"jenkins_file_path"`
-	Webhook bool `json:"webhook"`
-	WebhookID string `json:"webhook_id"`
-	WebhookToken string `json:"webhook_token"`
-	SuccessEmbed EmbedConfig `json:"success_embed"`
-	FailureEmbed EmbedConfig `json:"failure_embed"`
-}
-
-type EmbedConfig struct {
-	Title string `json:"title"`
-	Description string `json:"description"`
-	Changes string `json:"changes"`
-	Color int `json:"color"`
+	PostbuildScript string `json:"postbuild_script"`
 }
 
 type WebConfig struct {
