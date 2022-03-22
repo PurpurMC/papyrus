@@ -1,6 +1,8 @@
 package org.purpurmc.papyrus.commands;
 
 import io.javalin.Javalin;
+import io.javalin.http.Handler;
+import org.purpurmc.papyrus.PapyrusConfig;
 import org.purpurmc.papyrus.api.BuildHandler;
 import org.purpurmc.papyrus.api.ProjectHandler;
 import org.purpurmc.papyrus.api.VersionHandler;
@@ -14,13 +16,6 @@ import static io.javalin.apibuilder.ApiBuilder.*;
 )
 public class APICommand implements Runnable {
 
-    @CommandLine.Option(
-            names = {"-p", "--port"},
-            description = "The port to run the API on",
-            defaultValue = "8000"
-    )
-    private int port;
-
     @Override
     public void run() {
         Javalin app = Javalin.create();
@@ -29,25 +24,31 @@ public class APICommand implements Runnable {
         VersionHandler versions = new VersionHandler();
         BuildHandler builds = new BuildHandler();
 
-        app.routes(() -> path("/v2", () -> {
-            get("/projects", projects::listProjects);
-            get("/project/{project}", projects::getProject);
-
-            get("/project/{project}/versions", versions::listProjectVersions);
-            get("/project/{project}/version/{version}", versions::getProjectVersion);
-
-            get("/project/{project}/groups", versions::listProjectGroups);
-            get("/project/{project}/group/{group}", versions::getProjectGroup);
-
-            get("/project/{project}/builds", builds::listProjectBuilds);
-            get("/project/{project}/build/{build}", builds::getProjectBuild);
-            get("/project/{project}/build/{build}/download/{file}", builds::downloadProjectBuild);
-
-            get("/project/{project}/version/{version}/builds", builds::listVersionBuilds);
-            get("/project/{project}/version/{version}/build/{build}", builds::getVersionBuild);
-            get("/project/{project}/version/{version}/build/{build}/download/{file}", builds::downloadVersionBuild);
+        app.routes(() -> path(PapyrusConfig.routePrefix, () -> {
+            registerRoute(PapyrusConfig.projectsRoute, projects::listProjects);
+            registerRoute(PapyrusConfig.projectRoute, projects::getProject);
+            registerRoute(PapyrusConfig.projectGroupRoute, versions::getProjectGroup);
+            registerRoute(PapyrusConfig.projectVersionRoute, versions::getProjectVersion);
+            registerRoute(PapyrusConfig.projectVersionBuildRoute, builds::getVersionBuild);
+            registerRoute(PapyrusConfig.projectVersionBuildDownloadRoute, builds::downloadVersionBuild);
         }));
 
-        app.start(port);
+        app.start(PapyrusConfig.host, PapyrusConfig.port);
+    }
+
+    private void registerRoute(String route, Handler handler) {
+        if (route.isBlank()) {
+            return;
+        }
+
+        if (!route.startsWith("/")) {
+            route = "/" + route;
+        }
+
+        if (route.endsWith("/")) {
+            route = route.substring(0, route.length() - 1);
+        }
+
+        get(route, handler);
     }
 }

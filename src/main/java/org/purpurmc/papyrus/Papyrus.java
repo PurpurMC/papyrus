@@ -1,19 +1,22 @@
 package org.purpurmc.papyrus;
 
-import org.purpurmc.papyrus.commands.APICommand;
+import org.purpurmc.papyrus.commands.PapyrusCommand;
 import picocli.CommandLine;
 
-@CommandLine.Command(
-        name = "papyrus",
-        subcommands = {
-                CommandLine.HelpCommand.class,
-                APICommand.class,
-        }
-)
-public class Papyrus implements Runnable {
+public class Papyrus {
 
-    @Override
-    public void run() {
-        System.out.println("Papyrus is running!");
+    public static void main(String[] args) {
+        try {
+            if (PapyrusConfig.needsSetup()) {
+                PapyrusConfig.setup();
+            } else {
+                PapyrusConfig.load(false);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        new CommandLine(new PapyrusCommand()).execute(args);
     }
 }
