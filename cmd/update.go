@@ -4,20 +4,18 @@ import (
 	"context"
 	"fmt"
 	"github.com/purpurmc/papyrus/db"
-	"github.com/purpurmc/papyrus/types"
 	"github.com/purpurmc/papyrus/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
-	"io/ioutil"
 	"os"
-	"time"
 )
 
 var updateCommand = &cobra.Command{
 	Use:   "update",
 	Short: "After updating papyrus, this command will update the config and the db",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Updating config...")
 		viper.SetDefault("_version", 1)
 
 		viper.SetDefault("http.host", "127.0.0.1")
@@ -43,7 +41,8 @@ var updateCommand = &cobra.Command{
 			os.Exit(1)
 		}
 
-		database, bucket := db.NewMongo()
+		fmt.Println("Updating database...")
+		database, _ := db.NewMongo()
 		defer database.Client().Disconnect(context.TODO())
 
 		collections, err := database.ListCollectionNames(context.TODO(), bson.D{{}})
@@ -65,50 +64,7 @@ var updateCommand = &cobra.Command{
 			db.CreateCollection(database, "builds")
 		}
 
-		projectId := db.InsertProject(database, types.Project{
-			Name:      "purpur",
-			CreatedAt: time.Now().Unix(),
-		})
-
-		versionId := db.InsertVersion(database, types.Version{
-			ProjectId: projectId,
-			CreatedAt: time.Now().Unix(),
-			Name:      "1.18.2",
-		})
-
-		data, err := ioutil.ReadFile("/home/ben/downloads/purpur-1.18.2-1583.jar")
-		if err != nil {
-			fmt.Println("Error reading file")
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		fileName, hash, contentType := db.UploadFile(bucket, data)
-
-		db.InsertBuild(database, types.Build{
-			VersionId: versionId,
-			CreatedAt: time.Now().Unix(),
-			Name:      "1583",
-			Result:    "SUCCESS",
-			Commits: []types.Commit{
-				{
-					Author:      "BillyGalbreath",
-					Email:       "blake.galbreath@gmail.com",
-					Summary:     "clean up level/getWorld usage in various patches",
-					Description: "clean up level/getWorld usage in various patches\n",
-					Hash:        "e9af29e2c6b61a370a3a1bc4e2e26a1c895a555d",
-					Timestamp:   1646769225000,
-				},
-			},
-			Files: []types.File{
-				{
-					Id:          fileName,
-					ContentType: contentType,
-					Name:        "purpur.jar",
-					SHA512:      hash,
-				},
-			},
-		})
+		fmt.Println("Done!")
 	},
 }
 

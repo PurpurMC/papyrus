@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/sha512"
 	"encoding/hex"
-	"fmt"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/lucsky/cuid"
 	"github.com/purpurmc/papyrus/types"
@@ -13,14 +12,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
-	"os"
 )
 
 func CreateCollection(database *mongo.Database, collectionName string) {
 	err := database.CreateCollection(context.TODO(), collectionName, nil)
 	if err != nil {
-		fmt.Println("Error creating collection: ", err)
-		os.Exit(1)
+		panic(err)
 	}
 }
 
@@ -40,8 +37,7 @@ func Insert[T any](database *mongo.Database, collectionName string, object T) pr
 	collection := database.Collection(collectionName)
 	result, err := collection.InsertOne(context.TODO(), object)
 	if err != nil {
-		fmt.Println("Error inserting object: ", err)
-		os.Exit(1)
+		panic(err)
 	}
 	return result.InsertedID.(primitive.ObjectID)
 }
@@ -67,8 +63,7 @@ func GetSingle[T any](database *mongo.Database, collectionName string, filter *T
 			return nil
 		}
 
-		fmt.Println("Error getting project: ", err)
-		os.Exit(1)
+		panic(err)
 	}
 	return result
 }
@@ -96,19 +91,18 @@ func GetMultiple[T any](database *mongo.Database, collectionName string, filter 
 	}
 
 	if err != nil {
-		fmt.Println("Error getting objects: ", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	var objects []T
 	for cursor.Next(context.TODO()) {
 		var object T
 		if err := cursor.Decode(&object); err != nil {
-			fmt.Println("Error decoding object: ", err)
-			os.Exit(1)
+			panic(err)
 		}
 		objects = append(objects, object)
 	}
+
 	return objects
 }
 
@@ -129,8 +123,7 @@ func DownloadFile(bucket *gridfs.Bucket, fileName string) []byte {
 	var buffer bytes.Buffer
 	_, err := bucket.DownloadToStreamByName(fileName, &buffer)
 	if err != nil {
-		fmt.Println("Error downloading file: ", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	return buffer.Bytes()

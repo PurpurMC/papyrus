@@ -21,6 +21,7 @@ type Build struct {
 	CreatedAt int64              `bson:"created_at,omitempty"`
 	Name      string             `bson:"name,omitempty"`
 	Result    string             `bson:"result,omitempty"`
+	Flags     []string           `bson:"flags,omitempty"`
 	Commits   []Commit           `bson:"commits,omitempty"`
 	Files     []File             `bson:"files,omitempty"`
 }

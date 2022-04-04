@@ -37,6 +37,7 @@ type BuildResponse struct {
 	Build     string         `json:"build"`
 	CreatedAt int64          `json:"createdAt"`
 	Result    string   `json:"result"`
+	Flags     []string `json:"flags"`
 	Commits   []Commit `json:"commits"`
 	Files     []File   `json:"files"`
 }

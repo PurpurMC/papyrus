@@ -11,9 +11,12 @@ var rootCommand = &cobra.Command{
 	Use:   "papyrus",
 	Short: "A powerful downloads API for Jenkins",
 	Long:  `Papyrus is a low-overhead, high-performance, and highly-scalable downloads API for Jenkins and other CI/CD systems.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := cmd.Help(); err != nil {
-			panic(err)
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if cmd.Name() != "update" {
+			if _, err := os.Stat(viper.ConfigFileUsed()); os.IsNotExist(err) {
+				fmt.Println("Config file not found. Please run `papyrus update`.")
+				os.Exit(1)
+			}
 		}
 	},
 }

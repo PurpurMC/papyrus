@@ -7,7 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"os"
 )
 
 func NewMongo() (*mongo.Database, *gridfs.Bucket) {
@@ -17,15 +16,13 @@ func NewMongo() (*mongo.Database, *gridfs.Bucket) {
 		viper.GetString("db.host"),
 		viper.GetString("db.port"))))
 	if err != nil {
-		fmt.Println("Error connecting to MongoDB: ", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	database := client.Database(viper.GetString("db.db"))
 	bucket, err := gridfs.NewBucket(database)
 	if err != nil {
-		fmt.Println("Error accessing gridfs: ", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	return database, bucket
