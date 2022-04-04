@@ -1,12 +1,18 @@
 package db
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha512"
+	"encoding/hex"
 	"fmt"
+	"github.com/gabriel-vasile/mimetype"
+	"github.com/lucsky/cuid"
 	"github.com/purpurmc/papyrus/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"os"
 )
 
@@ -19,117 +25,43 @@ func CreateCollection(database *mongo.Database, collectionName string) {
 }
 
 func InsertProject(database *mongo.Database, project types.Project) primitive.ObjectID {
-	collection := database.Collection("projects")
-	result, err := collection.InsertOne(context.TODO(), project)
-	if err != nil {
-		fmt.Println("Error inserting project: ", err)
-		os.Exit(1)
-	}
-	return result.InsertedID.(primitive.ObjectID)
+	return Insert(database, "projects", project)
 }
 
 func InsertVersion(database *mongo.Database, version types.Version) primitive.ObjectID {
-	collection := database.Collection("versions")
-	result, err := collection.InsertOne(context.TODO(), version)
-	if err != nil {
-		fmt.Println("Error inserting version: ", err)
-		os.Exit(1)
-	}
-	return result.InsertedID.(primitive.ObjectID)
+	return Insert(database, "versions", version)
 }
 
 func InsertBuild(database *mongo.Database, build types.Build) primitive.ObjectID {
-	collection := database.Collection("builds")
-	result, err := collection.InsertOne(context.TODO(), build)
+	return Insert(database, "builds", build)
+}
+
+func Insert[T any](database *mongo.Database, collectionName string, object T) primitive.ObjectID {
+	collection := database.Collection(collectionName)
+	result, err := collection.InsertOne(context.TODO(), object)
 	if err != nil {
-		fmt.Println("Error inserting build: ", err)
+		fmt.Println("Error inserting object: ", err)
 		os.Exit(1)
 	}
 	return result.InsertedID.(primitive.ObjectID)
 }
 
-func GetProjects(database *mongo.Database, filter *types.Project) []types.Project {
-	collection := database.Collection("projects")
-	var cursor *mongo.Cursor
-	var err error
-	if filter == nil {
-		cursor, err = collection.Find(context.TODO(), bson.D{})
-	} else {
-		cursor, err = collection.Find(context.TODO(), filter)
-	}
-	if err != nil {
-		fmt.Println("Error getting projects: ", err)
-		os.Exit(1)
-	}
-	var projects []types.Project
-	for cursor.Next(context.TODO()) {
-		var project types.Project
-		err := cursor.Decode(&project)
-		if err != nil {
-			fmt.Println("Error decoding project: ", err)
-			os.Exit(1)
-		}
-		projects = append(projects, project)
-	}
-	return projects
-}
-
-func GetVersions(database *mongo.Database, filter *types.Version) []types.Version {
-	collection := database.Collection("versions")
-	var cursor *mongo.Cursor
-	var err error
-	if filter == nil {
-		cursor, err = collection.Find(context.TODO(), bson.D{})
-	} else {
-		cursor, err = collection.Find(context.TODO(), filter)
-	}
-	if err != nil {
-		fmt.Println("Error getting versions: ", err)
-		os.Exit(1)
-	}
-	var versions []types.Version
-	for cursor.Next(context.TODO()) {
-		var version types.Version
-		err := cursor.Decode(&version)
-		if err != nil {
-			fmt.Println("Error decoding version: ", err)
-			os.Exit(1)
-		}
-		versions = append(versions, version)
-	}
-	return versions
-}
-
-func GetBuilds(database *mongo.Database, filter *types.Build) []types.Build {
-	collection := database.Collection("builds")
-	var cursor *mongo.Cursor
-	var err error
-	if filter == nil {
-		cursor, err = collection.Find(context.TODO(), bson.D{})
-	} else {
-		cursor, err = collection.Find(context.TODO(), filter)
-	}
-	if err != nil {
-		fmt.Println("Error getting builds: ", err)
-		os.Exit(1)
-	}
-	var builds []types.Build
-	for cursor.Next(context.TODO()) {
-		var build types.Build
-		err := cursor.Decode(&build)
-		if err != nil {
-			fmt.Println("Error decoding build: ", err)
-			os.Exit(1)
-		}
-		builds = append(builds, build)
-	}
-	return builds
-}
-
 func GetProject(database *mongo.Database, filter *types.Project) *types.Project {
-	collection := database.Collection("projects")
-	var project *types.Project
-	err := collection.FindOne(context.TODO(), filter).Decode(&project)
+	return GetSingle(database, "projects", filter)
+}
+
+func GetVersion(database *mongo.Database, filter *types.Version) *types.Version {
+	return GetSingle(database, "versions", filter)
+}
+
+func GetBuild(database *mongo.Database, filter *types.Build) *types.Build {
+	return GetSingle(database, "builds", filter)
+}
+
+func GetSingle[T any](database *mongo.Database, collectionName string, filter *T) *T {
+	collection := database.Collection(collectionName)
+	var result *T
+	err := collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil
@@ -138,35 +70,68 @@ func GetProject(database *mongo.Database, filter *types.Project) *types.Project 
 		fmt.Println("Error getting project: ", err)
 		os.Exit(1)
 	}
-	return project
+	return result
 }
 
-func GetVersion(database *mongo.Database, filter *types.Version) *types.Version {
-	collection := database.Collection("versions")
-	var version *types.Version
-	err := collection.FindOne(context.TODO(), filter).Decode(&version)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil
-		}
-
-		fmt.Println("Error getting version: ", err)
-		os.Exit(1)
-	}
-	return version
+func GetProjects(database *mongo.Database, filter *types.Project) []types.Project {
+	return GetMultiple(database, "projects", filter)
 }
 
-func GetBuild(database *mongo.Database, filter *types.Build) *types.Build {
-	collection := database.Collection("builds")
-	var build *types.Build
-	err := collection.FindOne(context.TODO(), filter).Decode(&build)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil
-		}
+func GetVersions(database *mongo.Database, filter *types.Version) []types.Version {
+	return GetMultiple(database, "versions", filter)
+}
 
-		fmt.Println("Error getting build: ", err)
+func GetBuilds(database *mongo.Database, filter *types.Build) []types.Build {
+	return GetMultiple(database, "builds", filter)
+}
+
+func GetMultiple[T any](database *mongo.Database, collectionName string, filter *T) []T {
+	collection := database.Collection(collectionName)
+	var cursor *mongo.Cursor
+	var err error
+	if filter == nil {
+		cursor, err = collection.Find(context.TODO(), bson.D{})
+	} else {
+		cursor, err = collection.Find(context.TODO(), filter)
+	}
+
+	if err != nil {
+		fmt.Println("Error getting objects: ", err)
 		os.Exit(1)
 	}
-	return build
+
+	var objects []T
+	for cursor.Next(context.TODO()) {
+		var object T
+		if err := cursor.Decode(&object); err != nil {
+			fmt.Println("Error decoding object: ", err)
+			os.Exit(1)
+		}
+		objects = append(objects, object)
+	}
+	return objects
+}
+
+func UploadFile(bucket *gridfs.Bucket, data []byte) (string, string, string) {
+	fileName := cuid.New()
+	hash := sha512.Sum512(data)
+	contentType := mimetype.Detect(data)
+
+	_, err := bucket.UploadFromStream(fileName, bytes.NewReader(data))
+	if err != nil {
+		panic(err)
+	}
+
+	return fileName, hex.EncodeToString(hash[:]), contentType.String()
+}
+
+func DownloadFile(bucket *gridfs.Bucket, fileName string) []byte {
+	var buffer bytes.Buffer
+	_, err := bucket.DownloadToStreamByName(fileName, &buffer)
+	if err != nil {
+		fmt.Println("Error downloading file: ", err)
+		os.Exit(1)
+	}
+
+	return buffer.Bytes()
 }

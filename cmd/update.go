@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
+	"io/ioutil"
 	"os"
 	"time"
 )
@@ -42,7 +43,7 @@ var updateCommand = &cobra.Command{
 			os.Exit(1)
 		}
 
-		database := db.NewMongo()
+		database, bucket := db.NewMongo()
 		defer database.Client().Disconnect(context.TODO())
 
 		collections, err := database.ListCollectionNames(context.TODO(), bson.D{{}})
@@ -75,12 +76,21 @@ var updateCommand = &cobra.Command{
 			Name:      "1.18.2",
 		})
 
+		data, err := ioutil.ReadFile("/home/ben/downloads/purpur-1.18.2-1583.jar")
+		if err != nil {
+			fmt.Println("Error reading file")
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		fileName, hash, contentType := db.UploadFile(bucket, data)
+
 		db.InsertBuild(database, types.Build{
 			VersionId: versionId,
 			CreatedAt: time.Now().Unix(),
 			Name:      "1583",
 			Result:    "SUCCESS",
-			Commits:   []types.Commit{
+			Commits: []types.Commit{
 				{
 					Author:      "BillyGalbreath",
 					Email:       "blake.galbreath@gmail.com",
@@ -90,10 +100,12 @@ var updateCommand = &cobra.Command{
 					Timestamp:   1646769225000,
 				},
 			},
-			Files:     []types.File{
+			Files: []types.File{
 				{
-					Name:   "purpur.jar",
-					SHA512: "816f8864e224a601f9744335a065a207beb87d2b0221f4acb22cba0c198cb78afcf6edfb2e695eef9400ce18d24b009ebfe2ad0585b2819ae02471e5cd0c226e",
+					Id:          fileName,
+					ContentType: contentType,
+					Name:        "purpur.jar",
+					SHA512:      hash,
 				},
 			},
 		})

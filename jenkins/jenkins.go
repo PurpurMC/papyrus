@@ -3,11 +3,12 @@ package jenkins
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/purpurmc/papyrus/types"
 	"io"
 	"net/http"
 )
 
-func GetJenkinsData(url string, project string, build string) JenkinsData {
+func GetJenkinsData(url string, project string, build string) types.JenkinsData {
 	response, err := http.Get(fmt.Sprintf("%s/job/%s/%s/api/json", url, project, build))
 	if err != nil {
 		panic(err)
@@ -20,7 +21,7 @@ func GetJenkinsData(url string, project string, build string) JenkinsData {
 		}
 	}(response.Body)
 
-	var data JenkinsData
+	var data types.JenkinsData
 	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		panic(err)

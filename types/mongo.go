@@ -24,3 +24,7 @@ type Build struct {
 	Commits   []Commit           `bson:"commits,omitempty"`
 	Files     []File             `bson:"files,omitempty"`
 }
+
+type FileMetadata struct {
+	ContentType string `bson:"content_type,omitempty"`
+}

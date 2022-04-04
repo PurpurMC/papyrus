@@ -1,4 +1,4 @@
-package jenkins
+package types
 
 type JenkinsData struct {
 	Duration  int64  `json:"duration"`
@@ -12,9 +12,9 @@ type JenkinsChangeSet struct {
 
 type JenkinsChangeSetItem struct {
 	Hash string `json:"commitId"`
-	Timestamp int64 `json:"timestamp"`
-	Author JenkinsChangeSetItemAuthor `json:"author"`
-	AuthorEmail string `json:"authorEmail"`
+	Timestamp   int64                      `json:"timestamp"`
+	Author      JenkinsChangeSetItemAuthor `json:"author"`
+	AuthorEmail string                     `json:"authorEmail"`
 	Summary string `json:"msg"`
 	Description string `json:"comment"`
 }

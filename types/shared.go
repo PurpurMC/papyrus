@@ -10,6 +10,8 @@ type Commit struct {
 }
 
 type File struct {
-	Name   string `bson:"name,omitempty" json:"name"`
-	SHA512 string `bson:"sha512,omitempty" json:"sha512"`
+	Id          string `bson:"id,omitempty" json:"-"`
+	ContentType string `bson:"contentType,omitempty" json:"-"`
+	Name        string `bson:"name,omitempty" json:"name"`
+	SHA512      string `bson:"sha512,omitempty" json:"sha512"`
 }

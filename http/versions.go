@@ -9,7 +9,7 @@ import (
 )
 
 func getVersion(c *gin.Context) {
-	database := db.NewMongo()
+	database, _ := db.NewMongo()
 	defer database.Client().Disconnect(context.TODO())
 
 	project := db.GetProject(database, &types.Project{Name: c.Param("project")})
