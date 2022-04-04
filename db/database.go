@@ -106,25 +106,52 @@ func GetMultiple[T any](database *mongo.Database, collectionName string, filter 
 	return objects
 }
 
-func UploadFile(bucket *gridfs.Bucket, data []byte) (string, string, string) {
+func DeleteProjects(database *mongo.Database, filter *types.Project) {
+	Delete(database, "projects", filter)
+}
+
+func DeleteVersions(database *mongo.Database, filter *types.Version) {
+	Delete(database, "versions", filter)
+}
+
+func DeleteBuilds(database *mongo.Database, filter *types.Build) {
+	Delete(database, "builds", filter)
+}
+
+func Delete[T any](database *mongo.Database, collectionName string, filter *T) {
+	collection := database.Collection(collectionName)
+	_, err := collection.DeleteMany(context.TODO(), filter)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func UploadFile(bucket *gridfs.Bucket, data []byte) (primitive.ObjectID, string, string, string) {
 	fileName := cuid.New()
 	hash := sha512.Sum512(data)
 	contentType := mimetype.Detect(data)
 
-	_, err := bucket.UploadFromStream(fileName, bytes.NewReader(data))
+	objectId, err := bucket.UploadFromStream(fileName, bytes.NewReader(data))
 	if err != nil {
 		panic(err)
 	}
 
-	return fileName, hex.EncodeToString(hash[:]), contentType.String()
+	return objectId, fileName, hex.EncodeToString(hash[:]), contentType.String()
 }
 
-func DownloadFile(bucket *gridfs.Bucket, fileName string) []byte {
+func DownloadFile(bucket *gridfs.Bucket, fileId primitive.ObjectID) []byte {
 	var buffer bytes.Buffer
-	_, err := bucket.DownloadToStreamByName(fileName, &buffer)
+	_, err := bucket.DownloadToStream(fileId, &buffer)
 	if err != nil {
 		panic(err)
 	}
 
 	return buffer.Bytes()
+}
+
+func DeleteFile(bucket *gridfs.Bucket, fileId primitive.ObjectID) {
+	err := bucket.Delete(fileId)
+	if err != nil {
+		panic(err)
+	}
 }

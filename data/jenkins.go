@@ -5,13 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/purpurmc/papyrus/types"
+	"github.com/spf13/viper"
 	"io"
 	"net/http"
 	"strings"
 )
 
 func GetJenkinsData(url string, project string, build string) *types.JenkinsData {
-	response, err := http.Get(fmt.Sprintf("%s/job/%s/%s/api/json", strings.TrimSuffix(url, "/"), project, build))
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/job/%s/%s/api/json", strings.TrimSuffix(url, "/"), project, build), nil)
+	request.Header.Add("cf-access-token", viper.GetString("utils.cloudflare-access-token"))
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -38,7 +41,9 @@ func GetJenkinsData(url string, project string, build string) *types.JenkinsData
 }
 
 func DownloadJenkinsWorkspaceFile(url string, project string, path string) []byte {
-	response, err := http.Get(fmt.Sprintf("%s/job/%s/ws/%s", strings.TrimSuffix(url, "/"), project, path))
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/job/%s/ws/%s", strings.TrimSuffix(url, "/"), project, path), nil)
+	request.Header.Add("cf-access-token", viper.GetString("utils.cloudflare-access-token"))
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		fmt.Println(err)
 		return nil

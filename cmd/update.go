@@ -35,6 +35,8 @@ var updateCommand = &cobra.Command{
 		viper.SetDefault("db.password", "password")
 		viper.SetDefault("db.db", "papyrus")
 
+		viper.SetDefault("utils.cloudflare-access-token", "")
+
 		if err := viper.WriteConfig(); err != nil {
 			fmt.Println("Error writing config file, please make sure you have the correct permissions")
 			fmt.Println(err)

@@ -7,6 +7,7 @@ import (
 	"github.com/purpurmc/papyrus/db"
 	"github.com/purpurmc/papyrus/types"
 	"github.com/spf13/cobra"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"path/filepath"
 	"time"
 )
@@ -25,9 +26,9 @@ var addProjectCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		database, _ := db.NewMongo()
 		defer database.Client().Disconnect(context.TODO())
-		project := args[0]
+		projectName := args[0]
 
-		fmt.Println("Adding project", project)
+		fmt.Println("Adding project", projectName)
 
 		var createdAt int64
 		if cmd.Flags().Changed("createdAt") {
@@ -37,7 +38,7 @@ var addProjectCommand = &cobra.Command{
 		}
 
 		db.InsertProject(database, types.Project{
-			Name:      project,
+			Name:      projectName,
 			CreatedAt: createdAt,
 		})
 
@@ -54,12 +55,9 @@ var addVersionCommand = &cobra.Command{
 		database, _ := db.NewMongo()
 		defer database.Client().Disconnect(context.TODO())
 		projectName := args[0]
-		version := args[1]
+		versionName := args[1]
 
-		fmt.Println("Adding version", version, "to project", projectName)
-
-		project := db.GetProject(database, &types.Project{Name: projectName})
-		// todo: check if project exists
+		fmt.Println("Adding version", versionName, "to project", projectName)
 
 		var createdAt int64
 		if cmd.Flags().Changed("createdAt") {
@@ -68,10 +66,21 @@ var addVersionCommand = &cobra.Command{
 			createdAt = time.Now().Unix()
 		}
 
+		project := db.GetProject(database, &types.Project{Name: projectName})
+		var projectId primitive.ObjectID
+		if project == nil {
+			projectId = db.InsertProject(database, types.Project{
+				Name:      projectName,
+				CreatedAt: time.Now().Unix(),
+			})
+		} else {
+			projectId = project.Id
+		}
+
 		db.InsertVersion(database, types.Version{
-			ProjectId: project.Id,
+			ProjectId: projectId,
 			CreatedAt: createdAt,
-			Name:      version,
+			Name:      versionName,
 		})
 
 		fmt.Println("Version added!")
@@ -96,8 +105,27 @@ var addBuildCommand = &cobra.Command{
 		fmt.Println("Adding build", buildName, "to version", versionName, "of project", projectName)
 
 		project := db.GetProject(database, &types.Project{Name: projectName})
-		version := db.GetVersion(database, &types.Version{ProjectId: project.Id, Name: versionName})
-		// todo: make sure project and version exist
+		var projectId primitive.ObjectID
+		if project == nil {
+			projectId = db.InsertProject(database, types.Project{
+				Name:      projectName,
+				CreatedAt: time.Now().Unix(),
+			})
+		} else {
+			projectId = project.Id
+		}
+
+		version := db.GetVersion(database, &types.Version{ProjectId: projectId, Name: versionName})
+		var versionId primitive.ObjectID
+		if version == nil {
+			versionId = db.InsertVersion(database, types.Version{
+				ProjectId: projectId,
+				CreatedAt: time.Now().Unix(),
+				Name:      versionName,
+			})
+		} else {
+			versionId = version.Id
+		}
 
 		switch dataSource {
 		case "jenkins":
@@ -133,12 +161,13 @@ var addBuildCommand = &cobra.Command{
 						continue
 					}
 
-					fileName, hash, contentType := db.UploadFile(bucket, data)
+					fileId, fileName, hash, contentType := db.UploadFile(bucket, data)
 					files = append(files, types.File{
-						Id:          fileName,
-						ContentType: contentType,
-						Name:        filepath.Base(file),
-						SHA512:      hash,
+						Id:           fileId,
+						InternalName: fileName,
+						ContentType:  contentType,
+						Name:         filepath.Base(file),
+						SHA512:       hash,
 					})
 				}
 			} else {
@@ -165,7 +194,7 @@ var addBuildCommand = &cobra.Command{
 			}
 
 			db.InsertBuild(database, types.Build{
-				VersionId: version.Id,
+				VersionId: versionId,
 				CreatedAt: jenkinsData.Timestamp,
 				Name:      buildName,
 				Result:    jenkinsData.Result,
