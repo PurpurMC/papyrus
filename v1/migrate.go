@@ -153,9 +153,9 @@ func MigrateV1(url string, defaultFilename string) {
 }
 
 type LegacyBuildData struct {
-	Id      primitive.ObjectID `bson:"_id"`
-	BuildId primitive.ObjectID `bson:"build_id"`
-	MD5     string             `bson:"md5"`
+	Id      primitive.ObjectID `bson:"_id,omitempty"`
+	BuildId primitive.ObjectID `bson:"build_id,omitempty"`
+	MD5     string             `bson:"md5,omitempty"`
 }
 
 type LegacyBuildResponse struct {
