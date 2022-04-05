@@ -29,17 +29,23 @@ func getBuild(c *gin.Context) {
 		return
 	}
 
+	builds := db.GetBuildsFromVersion(database, version.Id)
 	var build *types.Build
 	if c.Param("build") == "latest" {
-		build = db.GetBuild(database, &types.Build{
-			VersionId: version.Id,
-			Name: db.VersionToResponse(database, *version).Builds.Latest,
-		})
+		versionRespone := db.VersionToResponse(database, *version)
+		for _, b := range builds {
+			if b.Name == versionRespone.Builds.Latest {
+				build = &b
+				break
+			}
+		}
 	} else {
-		build = db.GetBuild(database, &types.Build{
-			VersionId: version.Id,
-			Name: c.Param("build"),
-		})
+		for _, b := range builds {
+			if b.Name == c.Param("build") {
+				build = &b
+				break
+			}
+		}
 	}
 
 	if build == nil {
@@ -70,17 +76,23 @@ func downloadBuild(c *gin.Context) {
 		return
 	}
 
+	builds := db.GetBuildsFromVersion(database, version.Id)
 	var build *types.Build
 	if c.Param("build") == "latest" {
-		build = db.GetBuild(database, &types.Build{
-			VersionId: version.Id,
-			Name: db.VersionToResponse(database, *version).Builds.Latest,
-		})
+		versionRespone := db.VersionToResponse(database, *version)
+		for _, b := range builds {
+			if b.Name == versionRespone.Builds.Latest {
+				build = &b
+				break
+			}
+		}
 	} else {
-		build = db.GetBuild(database, &types.Build{
-			VersionId: version.Id,
-			Name: c.Param("build"),
-		})
+		for _, b := range builds {
+			if b.Name == c.Param("build") {
+				build = &b
+				break
+			}
+		}
 	}
 
 	if build == nil {

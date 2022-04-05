@@ -16,14 +16,14 @@ type Version struct {
 }
 
 type Build struct {
-	Id        primitive.ObjectID `bson:"_id,omitempty"`
-	VersionId primitive.ObjectID `bson:"version_id,omitempty"`
-	CreatedAt int64              `bson:"created_at,omitempty"`
-	Name      string             `bson:"name,omitempty"`
-	Result    string             `bson:"result,omitempty"`
-	Flags     []string           `bson:"flags,omitempty"`
-	Commits   []Commit           `bson:"commits,omitempty"`
-	Files     []File             `bson:"files,omitempty"`
+	Id         primitive.ObjectID   `bson:"_id,omitempty"`
+	VersionIds []primitive.ObjectID `bson:"version_ids,omitempty"`
+	CreatedAt  int64                `bson:"created_at,omitempty"`
+	Name       string               `bson:"name,omitempty"`
+	Result     string               `bson:"result,omitempty"`
+	Flags      []string             `bson:"flags,omitempty"`
+	Commits    []Commit             `bson:"commits,omitempty"`
+	Files      []File               `bson:"files,omitempty"`
 }
 
 type FileMetadata struct {

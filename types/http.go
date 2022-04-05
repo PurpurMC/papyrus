@@ -37,7 +37,7 @@ type VersionResponseDetailed struct {
 
 type BuildResponse struct {
 	Project   string   `json:"project"`
-	Version   string   `json:"version"`
+	Versions  []string `json:"versions"`
 	Build     string   `json:"build"`
 	CreatedAt int64    `json:"createdAt"`
 	Result    string   `json:"result"`

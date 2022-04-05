@@ -22,7 +22,7 @@ func ProjectToResponse(database *mongo.Database, project types.Project) types.Pr
 
 func VersionToResponse(database *mongo.Database, version types.Version) types.VersionResponse {
 	project := GetProject(database, &types.Project{Id: version.ProjectId})
-	builds := GetBuilds(database, &types.Build{VersionId: version.Id})
+	builds := GetBuildsFromVersion(database, version.Id)
 
 	var newestBuild types.Build
 	if len(builds) > 0 {
@@ -57,7 +57,7 @@ func VersionToResponse(database *mongo.Database, version types.Version) types.Ve
 
 func VersionToResponseDetailed(database *mongo.Database, version types.Version) types.VersionResponseDetailed {
 	project := GetProject(database, &types.Project{Id: version.ProjectId})
-	builds := GetBuilds(database, &types.Build{VersionId: version.Id})
+	builds := GetBuildsFromVersion(database, version.Id)
 
 	var newestBuild types.Build
 	if len(builds) > 0 {
@@ -81,7 +81,7 @@ func VersionToResponseDetailed(database *mongo.Database, version types.Version) 
 		Version:   version.Name,
 		CreatedAt: version.CreatedAt,
 		Builds: struct {
-			Latest string   `json:"latest"`
+			Latest string                `json:"latest"`
 			All    []types.BuildResponse `json:"all"`
 		}{
 			Latest: newestBuild.Name,
@@ -91,33 +91,32 @@ func VersionToResponseDetailed(database *mongo.Database, version types.Version) 
 }
 
 func BuildToResponse(database *mongo.Database, build types.Build) types.BuildResponse {
-	version := GetVersion(database, &types.Version{Id: build.VersionId})
-	project := GetProject(database, &types.Project{Id: version.ProjectId})
+	versions := GetVersionsFromBuild(database, build.Id)
+	project := GetProject(database, &types.Project{Id: versions[0].ProjectId})
 
-	var flags []string
-	if build.Flags == nil {
-		flags = make([]string, 0)
-	} else {
+	versionNames := make([]string, 0)
+	for _, version := range versions {
+		versionNames = append(versionNames, version.Name)
+	}
+
+	flags := make([]string, 0)
+	if build.Flags != nil {
 		flags = build.Flags
 	}
 
-	var commits []types.Commit
-	if build.Commits == nil {
-		commits = make([]types.Commit, 0)
-	} else {
+	commits := make([]types.Commit, 0)
+	if build.Commits != nil {
 		commits = build.Commits
 	}
 
-	var files []types.File
-	if build.Files == nil {
-		files = make([]types.File, 0)
-	} else {
+	files := make([]types.File, 0)
+	if build.Files != nil {
 		files = build.Files
 	}
 
 	return types.BuildResponse{
 		Project:   project.Name,
-		Version:   version.Name,
+		Versions:  versionNames,
 		Build:     build.Name,
 		CreatedAt: build.CreatedAt,
 		Result:    build.Result,

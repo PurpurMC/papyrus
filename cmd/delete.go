@@ -40,7 +40,7 @@ var deleteProjectCommand = &cobra.Command{
 
 		versions := db.GetVersions(database, &types.Version{ProjectId: project.Id})
 		for _, version := range versions {
-			builds := db.GetBuilds(database, &types.Build{VersionId: version.Id})
+			builds := db.GetBuildsFromVersion(database, version.Id)
 			for _, build := range builds {
 				deleteFiles(database, bucket, &build, false, true)
 				db.DeleteBuilds(database, &types.Build{Id: build.Id})
@@ -82,12 +82,12 @@ var deleteVersionCommand = &cobra.Command{
 			return
 		}
 
-		builds := db.GetBuilds(database, &types.Build{VersionId: version.Id})
+		builds := db.GetBuildsFromVersion(database, version.Id)
 		for _, build := range builds {
 			deleteFiles(database, bucket, &build, true, false)
+			db.DeleteBuilds(database, &types.Build{Id: build.Id})
 		}
 
-		db.DeleteBuilds(database, &types.Build{VersionId: version.Id})
 		db.DeleteVersions(database, &types.Version{ProjectId: project.Id, Name: versionName})
 		fmt.Println("Version deleted!")
 	},
@@ -122,14 +122,22 @@ var deleteBuildCommand = &cobra.Command{
 			return
 		}
 
-		build := db.GetBuild(database, &types.Build{VersionId: version.Id, Name: buildName})
+		var build *types.Build
+		builds := db.GetBuildsFromVersion(database, version.Id)
+		for _, b := range builds {
+			if b.Name == buildName {
+				build = &b
+				break
+			}
+		}
+
 		if build == nil {
 			fmt.Println("Build not found!")
 			return
 		}
 
 		deleteFiles(database, bucket, build, false, false)
-		db.DeleteBuilds(database, &types.Build{VersionId: version.Id, Name: buildName})
+		db.DeleteBuilds(database, &types.Build{Id: build.Id, Name: buildName})
 		fmt.Println("Build deleted!")
 	},
 }
@@ -159,15 +167,15 @@ func deleteFiles(database *mongo.Database, bucket *gridfs.Bucket, build *types.B
 	for _, file := range build.Files {
 		existsInOtherBuilds := false
 		for _, otherBuild := range builds {
-			if otherBuild.Id == build.Id || (checkVersions && otherBuild.VersionId != build.VersionId) {
+			if otherBuild.Id == build.Id || (checkVersions && otherBuild.VersionIds[0] != build.VersionIds[0]) {
 				continue
 			}
 
 			if checkProjects {
-				version := db.GetVersion(database, &types.Version{Id: build.VersionId})
+				version := db.GetVersion(database, &types.Version{Id: build.VersionIds[0]})
 				project := db.GetProject(database, &types.Project{Id: version.ProjectId})
 
-				otherVersion := db.GetVersion(database, &types.Version{Id: otherBuild.VersionId})
+				otherVersion := db.GetVersion(database, &types.Version{Id: otherBuild.VersionIds[0]})
 				otherProject := db.GetProject(database, &types.Project{Id: otherVersion.ProjectId})
 
 				if project.Id == otherProject.Id {

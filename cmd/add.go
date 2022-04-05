@@ -33,6 +33,12 @@ var addProjectCommand = &cobra.Command{
 
 		fmt.Println("Adding project", projectName)
 
+		project := db.GetProject(database, &types.Project{Name: projectName})
+		if project != nil {
+			fmt.Println("A project with that name already exists")
+			return
+		}
+
 		var createdAt int64
 		if cmd.Flags().Changed("createdAt") {
 			createdAt, _ = cmd.Flags().GetInt64("createdAt")
@@ -78,6 +84,15 @@ var addVersionCommand = &cobra.Command{
 			})
 		} else {
 			projectId = project.Id
+		}
+
+		version := db.GetVersion(database, &types.Version{
+			ProjectId: projectId,
+			Name:      versionName,
+		})
+		if version != nil {
+			fmt.Println("A version with that name already exists")
+			return
 		}
 
 		db.InsertVersion(database, types.Version{
@@ -128,6 +143,12 @@ var addBuildCommand = &cobra.Command{
 			})
 		} else {
 			versionId = version.Id
+		}
+
+		build := db.GetBuild(database, &types.Build{VersionIds: []primitive.ObjectID{versionId}, Name: buildName})
+		if build != nil {
+			fmt.Println("A build with that name already exists")
+			return
 		}
 
 		switch dataSource {
@@ -192,7 +213,7 @@ var addBuildCommand = &cobra.Command{
 			}
 
 			buildId := db.InsertBuild(database, types.Build{
-				VersionId: versionId,
+				VersionIds: []primitive.ObjectID{versionId},
 				CreatedAt: jenkinsData.Timestamp,
 				Name:      buildName,
 				Result:    jenkinsData.Result,

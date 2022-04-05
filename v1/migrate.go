@@ -113,7 +113,7 @@ func MigrateV1(url string, defaultFilename string) {
 				}
 
 				buildId := db.InsertBuild(database, types.Build{
-					VersionId: versionId,
+					VersionIds: []primitive.ObjectID{versionId},
 					CreatedAt: buildResponse.Timestamp,
 					Name:      build,
 					Result:    buildResponse.Result,
