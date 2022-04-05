@@ -19,9 +19,9 @@ func ProjectToResponse(database *mongo.Database, project types.Project) types.Pr
 	}
 
 	return types.ProjectResponse{
-		Project:  project.Name,
+		Project:   project.Name,
 		CreatedAt: project.CreatedAt,
-		Versions: versionNames,
+		Versions:  versionNames,
 	}
 }
 
@@ -52,11 +52,16 @@ func VersionToResponse(database *mongo.Database, version types.Version) types.Ve
 	}
 
 	return types.VersionResponse{
-		Project: project.Name,
-		Version: version.Name,
+		Project:   project.Name,
+		Version:   version.Name,
 		CreatedAt: version.CreatedAt,
-		Latest:  newestBuild.Name,
-		Builds:  buildNames,
+		Builds: struct {
+			Latest string   `json:"latest"`
+			All    []string `json:"all"`
+		}{
+			Latest: newestBuild.Name,
+			All:    buildNames,
+		},
 	}
 }
 
@@ -87,11 +92,16 @@ func VersionToResponseDetailed(database *mongo.Database, version types.Version) 
 	}
 
 	return types.VersionResponseDetailed{
-		Project: project.Name,
-		Version: version.Name,
+		Project:   project.Name,
+		Version:   version.Name,
 		CreatedAt: version.CreatedAt,
-		Latest:  newestBuild.Name,
-		Builds:  responseBuilds,
+		Builds: struct {
+			Latest string   `json:"latest"`
+			All    []types.BuildResponse `json:"all"`
+		}{
+			Latest: newestBuild.Name,
+			All:    responseBuilds,
+		},
 	}
 }
 
@@ -126,7 +136,7 @@ func BuildToResponse(database *mongo.Database, build types.Build) types.BuildRes
 		Build:     build.Name,
 		CreatedAt: build.CreatedAt,
 		Result:    build.Result,
-		Flags: flags,
+		Flags:     flags,
 		Commits:   commits,
 		Files:     files,
 	}

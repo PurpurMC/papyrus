@@ -22,12 +22,15 @@ var updateCommand = &cobra.Command{
 		viper.SetDefault("http.port", 8080)
 		viper.SetDefault("http.debug", false)
 
-		viper.SetDefault("http.routes.prefix", "/v1")
+		viper.SetDefault("http.routes.prefix", "/v2")
 		viper.SetDefault("http.routes.list-projects", "/")
 		viper.SetDefault("http.routes.get-project", "/:project")
 		viper.SetDefault("http.routes.get-version", "/:project/:version")
 		viper.SetDefault("http.routes.get-build", "/:project/:version/:build")
 		viper.SetDefault("http.routes.download-build", "/:project/:version/:build/:file")
+
+		viper.SetDefault("http.v1-compat.enabled", false)
+		viper.SetDefault("http.v1-compat.prefix", "/v1")
 
 		viper.SetDefault("db.host", "127.0.0.1")
 		viper.SetDefault("db.port", 27017)

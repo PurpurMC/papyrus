@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	v1 "github.com/purpurmc/papyrus/http/v1"
 	"github.com/spf13/viper"
 	"strings"
 )
@@ -23,6 +24,17 @@ func Start() {
 		prefix.GET(strings.TrimSuffix(viper.GetString("http.routes.get-version"), "/"), getVersion)
 		prefix.GET(strings.TrimSuffix(viper.GetString("http.routes.get-build"), "/"), getBuild)
 		prefix.GET(strings.TrimSuffix(viper.GetString("http.routes.download-build"), "/"), downloadBuild)
+	}
+
+	if viper.GetBool("http.v1-compat.enabled") {
+		compat := router.Group(viper.GetString("http.v1-compat.prefix"))
+		{
+			compat.GET("", listProjects)
+			compat.GET("/:project", getProject)
+			compat.GET("/:project/:version", getVersion)
+			compat.GET("/:project/:version/:build", v1.GetBuild)
+			compat.GET("/:project/:version/:build/download", v1.DownloadBuild)
+		}
 	}
 
 	router.RedirectTrailingSlash = true
