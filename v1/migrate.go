@@ -133,8 +133,9 @@ func MigrateV1(url string, defaultFilename string) {
 				md5hash := md5.Sum(file)
 				v1 := database.Collection("v1")
 				_, err = v1.InsertOne(context.TODO(), LegacyBuildData{
-					BuildId: buildId,
-					MD5:     hex.EncodeToString(md5hash[:]),
+					BuildId:  buildId,
+					Duration: buildResponse.Duration,
+					MD5:      hex.EncodeToString(md5hash[:]),
 				})
 				if err != nil {
 					panic(err)
@@ -153,17 +154,19 @@ func MigrateV1(url string, defaultFilename string) {
 }
 
 type LegacyBuildData struct {
-	Id      primitive.ObjectID `bson:"_id,omitempty"`
-	BuildId primitive.ObjectID `bson:"build_id,omitempty"`
-	MD5     string             `bson:"md5,omitempty"`
+	Id       primitive.ObjectID `bson:"_id,omitempty"`
+	BuildId  primitive.ObjectID `bson:"build_id,omitempty"`
+	Duration int64              `bson:"duration,omitempty"`
+	MD5      string             `bson:"md5,omitempty"`
 }
 
 type LegacyBuildResponse struct {
-	Project string `json:"project"`
-	Version string `json:"version"`
-	Name    string `json:"build"`
-	Result  string `json:"result"`
-	Commits []struct {
+	Project  string `json:"project"`
+	Version  string `json:"version"`
+	Name     string `json:"build"`
+	Result   string `json:"result"`
+	Duration int64  `json:"duration"`
+	Commits  []struct {
 		Author      string `json:"author"`
 		Description string `json:"description"`
 		Hash        string `json:"hash"`

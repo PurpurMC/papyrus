@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/purpurmc/papyrus/v1"
 	"github.com/spf13/viper"
@@ -24,6 +25,10 @@ func Start() {
 		prefix.GET(strings.TrimSuffix(viper.GetString("http.routes.get-version"), "/"), getVersion)
 		prefix.GET(strings.TrimSuffix(viper.GetString("http.routes.get-build"), "/"), getBuild)
 		prefix.GET(strings.TrimSuffix(viper.GetString("http.routes.download-build"), "/"), downloadBuild)
+	}
+
+	if viper.GetBool("http.routes.docs.enabled") {
+		router.Use(static.Serve(viper.GetString("http.routes.docs.prefix"), static.LocalFile(viper.GetString("http.routes.docs.directory"), true)))
 	}
 
 	if viper.GetBool("http.v1-compat.enabled") {

@@ -29,6 +29,10 @@ var updateCommand = &cobra.Command{
 		viper.SetDefault("http.routes.get-build", "/:project/:version/:build")
 		viper.SetDefault("http.routes.download-build", "/:project/:version/:build/:file")
 
+		viper.SetDefault("http.routes.docs.enabled", false)
+		viper.SetDefault("http.routes.docs.prefix", "/docs")
+		viper.SetDefault("http.routes.docs.directory", "/")
+
 		viper.SetDefault("http.v1-compat.enabled", false)
 		viper.SetDefault("http.v1-compat.prefix", "/v1")
 
