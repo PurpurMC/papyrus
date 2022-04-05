@@ -49,15 +49,20 @@ func GetBuild(c *gin.Context) {
 		return
 	}
 
-	commits := make([]gin.H, len(build.Commits)-1)
-	for _, commit := range build.Commits {
-		commits = append(commits, gin.H{
-			"author": commit.Author,
-			"description": commit.Description,
-			"hash": commit.Hash,
-			"email": commit.Email,
-			"timestamp": commit.Timestamp,
-		})
+	var commits []gin.H
+	if len(build.Commits) > 0 {
+		commits = make([]gin.H, len(build.Commits)-1)
+		for _, commit := range build.Commits {
+			commits = append(commits, gin.H{
+				"author": commit.Author,
+				"description": commit.Description,
+				"hash": commit.Hash,
+				"email": commit.Email,
+				"timestamp": commit.Timestamp,
+			})
+		}
+	} else {
+		commits = make([]gin.H, 0)
 	}
 
 	data := db.DownloadFile(bucket, build.Files[0].Id)

@@ -3,7 +3,7 @@ package http
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	v1 "github.com/purpurmc/papyrus/http/v1"
+	"github.com/purpurmc/papyrus/v1"
 	"github.com/spf13/viper"
 	"strings"
 )
