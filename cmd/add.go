@@ -2,10 +2,13 @@ package cmd
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"github.com/purpurmc/papyrus/data"
 	"github.com/purpurmc/papyrus/db"
 	"github.com/purpurmc/papyrus/types"
+	v1 "github.com/purpurmc/papyrus/v1"
 	"github.com/spf13/cobra"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"path/filepath"
@@ -149,13 +152,19 @@ var addBuildCommand = &cobra.Command{
 
 			fmt.Println("Getting workspace files from Jenkins")
 
+			var legacyFileOneData []byte
+
 			files := make([]types.File, 0)
-			for _, file := range jenkinsWorkspaceFiles {
+			for i, file := range jenkinsWorkspaceFiles {
 				data := data.DownloadJenkinsWorkspaceFile(jenkinsUrl, jenkinsJob, file)
 				if data == nil {
 					fmt.Println("Failed to download workspace file:", file)
 					fmt.Println("Skipping...")
 					continue
+				}
+
+				if i == 0 {
+					legacyFileOneData = data
 				}
 
 				fileId, fileName, hash, contentType := db.UploadFile(bucket, data)
@@ -182,7 +191,7 @@ var addBuildCommand = &cobra.Command{
 				})
 			}
 
-			db.InsertBuild(database, types.Build{
+			buildId := db.InsertBuild(database, types.Build{
 				VersionId: versionId,
 				CreatedAt: jenkinsData.Timestamp,
 				Name:      buildName,
@@ -191,6 +200,17 @@ var addBuildCommand = &cobra.Command{
 				Commits:   commits,
 				Files:     files,
 			})
+
+			md5hash := md5.Sum(legacyFileOneData)
+			v1collection := database.Collection("v1")
+			_, err := v1collection.InsertOne(context.TODO(), v1.LegacyBuildData{
+				BuildId: buildId,
+				MD5:     hex.EncodeToString(md5hash[:]),
+			})
+
+			if err != nil {
+				panic(err)
+			}
 		default:
 			fmt.Println("Invalid data source, currently only jenkins is supported")
 			return

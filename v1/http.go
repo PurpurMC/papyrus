@@ -2,8 +2,6 @@ package v1
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/purpurmc/papyrus/db"
@@ -12,7 +10,7 @@ import (
 )
 
 func GetBuild(c *gin.Context) {
-	database, bucket := db.NewMongo()
+	database, _ := db.NewMongo()
 	defer database.Client().Disconnect(context.TODO())
 
 	project := db.GetProject(database, &types.Project{Name: c.Param("project")})
@@ -23,7 +21,7 @@ func GetBuild(c *gin.Context) {
 
 	version := db.GetVersion(database, &types.Version{
 		ProjectId: project.Id,
-		Name: c.Param("version"),
+		Name:      c.Param("version"),
 	})
 
 	if version == nil {
@@ -35,12 +33,12 @@ func GetBuild(c *gin.Context) {
 	if c.Param("build") == "latest" {
 		build = db.GetBuild(database, &types.Build{
 			VersionId: version.Id,
-			Name: db.VersionToResponse(database, *version).Builds.Latest,
+			Name:      db.VersionToResponse(database, *version).Builds.Latest,
 		})
 	} else {
 		build = db.GetBuild(database, &types.Build{
 			VersionId: version.Id,
-			Name: c.Param("build"),
+			Name:      c.Param("build"),
 		})
 	}
 
@@ -52,26 +50,30 @@ func GetBuild(c *gin.Context) {
 	commits := make([]gin.H, 0)
 	for _, commit := range build.Commits {
 		commits = append(commits, gin.H{
-			"author": commit.Author,
+			"author":      commit.Author,
 			"description": commit.Description,
-			"hash": commit.Hash,
-			"email": commit.Email,
-			"timestamp": commit.Timestamp,
+			"hash":        commit.Hash,
+			"email":       commit.Email,
+			"timestamp":   commit.Timestamp,
 		})
 	}
 
-	data := db.DownloadFile(bucket, build.Files[0].Id)
-	md5Hash := md5.Sum(data)
+	v1 := database.Collection("v1")
+	var legacyData LegacyBuildData
+	err := v1.FindOne(context.TODO(), &LegacyBuildData{BuildId: build.Id}).Decode(&legacyData)
+	if err != nil {
+		panic(err)
+	}
 
 	c.JSON(200, gin.H{
-		"project": project.Name,
-		"version": version.Name,
-		"build":   build.Name,
-		"result":  build.Result,
-		"duration": 0,
-		"commits": commits,
+		"project":   project.Name,
+		"version":   version.Name,
+		"build":     build.Name,
+		"result":    build.Result,
+		"duration":  0,
+		"commits":   commits,
 		"timestamp": build.CreatedAt,
-		"md5": hex.EncodeToString(md5Hash[:]),
+		"md5": legacyData.MD5,
 	})
 }
 
@@ -87,7 +89,7 @@ func DownloadBuild(c *gin.Context) {
 
 	version := db.GetVersion(database, &types.Version{
 		ProjectId: project.Id,
-		Name: c.Param("version"),
+		Name:      c.Param("version"),
 	})
 
 	if version == nil {
@@ -99,12 +101,12 @@ func DownloadBuild(c *gin.Context) {
 	if c.Param("build") == "latest" {
 		build = db.GetBuild(database, &types.Build{
 			VersionId: version.Id,
-			Name: db.VersionToResponse(database, *version).Builds.Latest,
+			Name:      db.VersionToResponse(database, *version).Builds.Latest,
 		})
 	} else {
 		build = db.GetBuild(database, &types.Build{
 			VersionId: version.Id,
-			Name: c.Param("build"),
+			Name:      c.Param("build"),
 		})
 	}
 

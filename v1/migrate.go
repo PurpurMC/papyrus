@@ -1,10 +1,14 @@
 package v1
 
 import (
+	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/purpurmc/papyrus/db"
 	"github.com/purpurmc/papyrus/types"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -108,14 +112,14 @@ func MigrateV1(url string, defaultFilename string) {
 					})
 				}
 
-				db.InsertBuild(database, types.Build{
+				buildId := db.InsertBuild(database, types.Build{
 					VersionId: versionId,
 					CreatedAt: buildResponse.Timestamp,
 					Name:      build,
 					Result:    buildResponse.Result,
 					Flags:     make([]string, 0),
 					Commits:   commits,
-					Files:     []types.File{
+					Files: []types.File{
 						{
 							Id:           fileId,
 							InternalName: fileName,
@@ -125,6 +129,16 @@ func MigrateV1(url string, defaultFilename string) {
 						},
 					},
 				})
+
+				md5hash := md5.Sum(file)
+				v1 := database.Collection("v1")
+				_, err = v1.InsertOne(context.TODO(), LegacyBuildData{
+					BuildId: buildId,
+					MD5:     hex.EncodeToString(md5hash[:]),
+				})
+				if err != nil {
+					panic(err)
+				}
 
 				fmt.Println("Migrated " + project + "/" + version + "/" + build)
 
@@ -138,18 +152,24 @@ func MigrateV1(url string, defaultFilename string) {
 	}
 }
 
+type LegacyBuildData struct {
+	Id      primitive.ObjectID `bson:"_id"`
+	BuildId primitive.ObjectID `bson:"build_id"`
+	MD5     string             `bson:"md5"`
+}
+
 type LegacyBuildResponse struct {
 	Project string `json:"project"`
 	Version string `json:"version"`
-	Name string `json:"build"`
-	Result string `json:"result"`
+	Name    string `json:"build"`
+	Result  string `json:"result"`
 	Commits []struct {
-		Author string `json:"author"`
+		Author      string `json:"author"`
 		Description string `json:"description"`
-		Hash string `json:"hash"`
-		Email string `json:"email"`
-		Timestamp int64 `json:"timestamp"`
+		Hash        string `json:"hash"`
+		Email       string `json:"email"`
+		Timestamp   int64  `json:"timestamp"`
 	} `json:"commits"`
-	Timestamp int64 `json:"timestamp"`
-	MD5 string `json:"md5"`
+	Timestamp int64  `json:"timestamp"`
+	MD5       string `json:"md5"`
 }

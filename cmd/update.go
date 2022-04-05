@@ -69,6 +69,10 @@ var updateCommand = &cobra.Command{
 			db.CreateCollection(database, "builds")
 		}
 
+		if !utils.StringInSlice("v1", collections) {
+			db.CreateCollection(database, "v1")
+		}
+
 		fmt.Println("Done!")
 	},
 }
