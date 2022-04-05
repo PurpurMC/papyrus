@@ -88,29 +88,24 @@ func MigrateV1(url string, defaultFilename string) {
 
 				fileId, fileName, hash, contentType := db.UploadFile(bucket, file)
 
-				var commits []types.Commit
-				if len(buildResponse.Commits) > 0 {
-					commits = make([]types.Commit, len(buildResponse.Commits)-1)
-					for _, commit := range buildResponse.Commits {
-						splits := strings.Split(commit.Description, "\n")
-						var summary string
-						if len(splits) > 0 {
-							summary = splits[0]
-						} else {
-							summary = commit.Description
-						}
-
-						commits = append(commits, types.Commit{
-							Author:      commit.Author,
-							Email:       commit.Email,
-							Summary:     summary,
-							Description: commit.Description,
-							Hash:        commit.Hash,
-							Timestamp:   commit.Timestamp,
-						})
+				commits := make([]types.Commit, 0)
+				for _, commit := range buildResponse.Commits {
+					splits := strings.Split(commit.Description, "\n")
+					var summary string
+					if len(splits) > 0 {
+						summary = splits[0]
+					} else {
+						summary = commit.Description
 					}
-				} else {
-					commits = make([]types.Commit, 0)
+
+					commits = append(commits, types.Commit{
+						Author:      commit.Author,
+						Email:       commit.Email,
+						Summary:     summary,
+						Description: commit.Description,
+						Hash:        commit.Hash,
+						Timestamp:   commit.Timestamp,
+					})
 				}
 
 				db.InsertBuild(database, types.Build{

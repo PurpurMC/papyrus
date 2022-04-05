@@ -14,14 +14,9 @@ func listProjects(c *gin.Context) {
 
 	projects := db.GetProjects(database, nil)
 
-	var projectNames []string
-	if len(projects) > 0 {
-		projectNames = make([]string, len(projects)-1)
-		for _, project := range projects {
-			projectNames = append(projectNames, project.Name)
-		}
-	} else {
-		projectNames = make([]string, 0)
+	projectNames := make([]string, 0)
+	for _, project := range projects {
+		projectNames = append(projectNames, project.Name)
 	}
 
 	c.JSON(200, types.ProjectsResponse{Projects: projectNames})

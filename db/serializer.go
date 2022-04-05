@@ -8,14 +8,9 @@ import (
 func ProjectToResponse(database *mongo.Database, project types.Project) types.ProjectResponse {
 	versions := GetVersions(database, &types.Version{ProjectId: project.Id})
 
-	var versionNames []string
-	if len(versions) > 0 {
-		versionNames = make([]string, len(versions)-1)
-		for _, version := range versions {
-			versionNames = append(versionNames, version.Name)
-		}
-	} else {
-		versionNames = make([]string, 0)
+	versionNames := make([]string, 0)
+	for _, version := range versions {
+		versionNames = append(versionNames, version.Name)
 	}
 
 	return types.ProjectResponse{
@@ -41,14 +36,9 @@ func VersionToResponse(database *mongo.Database, version types.Version) types.Ve
 		newestBuild = types.Build{Name: ""}
 	}
 
-	var buildNames []string
-	if len(builds) > 0 {
-		buildNames = make([]string, len(builds)-1)
-		for _, build := range builds {
-			buildNames = append(buildNames, build.Name)
-		}
-	} else {
-		buildNames = make([]string, 0)
+	buildNames := make([]string, 0)
+	for _, build := range builds {
+		buildNames = append(buildNames, build.Name)
 	}
 
 	return types.VersionResponse{
@@ -81,14 +71,9 @@ func VersionToResponseDetailed(database *mongo.Database, version types.Version) 
 		newestBuild = types.Build{Name: ""}
 	}
 
-	var responseBuilds []types.BuildResponse
-	if len(builds) > 0 {
-		responseBuilds = make([]types.BuildResponse, len(builds)-1)
-		for _, build := range builds {
-			responseBuilds = append(responseBuilds, BuildToResponse(database, build))
-		}
-	} else {
-		responseBuilds = make([]types.BuildResponse, 0)
+	responseBuilds := make([]types.BuildResponse, 0)
+	for _, build := range builds {
+		responseBuilds = append(responseBuilds, BuildToResponse(database, build))
 	}
 
 	return types.VersionResponseDetailed{

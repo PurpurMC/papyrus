@@ -149,48 +149,37 @@ var addBuildCommand = &cobra.Command{
 
 			fmt.Println("Getting workspace files from Jenkins")
 
-			var files []types.File
-			if len(jenkinsWorkspaceFiles) > 0 {
-				files = make([]types.File, len(jenkinsWorkspaceFiles)-1)
-
-				for _, file := range jenkinsWorkspaceFiles {
-					data := data.DownloadJenkinsWorkspaceFile(jenkinsUrl, jenkinsJob, file)
-					if data == nil {
-						fmt.Println("Failed to download workspace file:", file)
-						fmt.Println("Skipping...")
-						continue
-					}
-
-					fileId, fileName, hash, contentType := db.UploadFile(bucket, data)
-					files = append(files, types.File{
-						Id:           fileId,
-						InternalName: fileName,
-						ContentType:  contentType,
-						Name:         filepath.Base(file),
-						SHA512:       hash,
-					})
+			files := make([]types.File, 0)
+			for _, file := range jenkinsWorkspaceFiles {
+				data := data.DownloadJenkinsWorkspaceFile(jenkinsUrl, jenkinsJob, file)
+				if data == nil {
+					fmt.Println("Failed to download workspace file:", file)
+					fmt.Println("Skipping...")
+					continue
 				}
-			} else {
-				files = make([]types.File, 0)
+
+				fileId, fileName, hash, contentType := db.UploadFile(bucket, data)
+				files = append(files, types.File{
+					Id:           fileId,
+					InternalName: fileName,
+					ContentType:  contentType,
+					Name:         filepath.Base(file),
+					SHA512:       hash,
+				})
 			}
 
 			fmt.Println("Creating build from Jenkins data")
 
-			var commits []types.Commit
-			if len(jenkinsData.ChangeSet.Items) > 0 {
-				commits = make([]types.Commit, len(jenkinsData.ChangeSet.Items)-1)
-				for _, item := range jenkinsData.ChangeSet.Items {
-					commits = append(commits, types.Commit{
-						Author:      item.Author.Name,
-						Email:       item.AuthorEmail,
-						Summary:     item.Summary,
-						Description: item.Description,
-						Hash:        item.Hash,
-						Timestamp:   item.Timestamp,
-					})
-				}
-			} else {
-				commits = make([]types.Commit, 0)
+			commits := make([]types.Commit, 0)
+			for _, item := range jenkinsData.ChangeSet.Items {
+				commits = append(commits, types.Commit{
+					Author:      item.Author.Name,
+					Email:       item.AuthorEmail,
+					Summary:     item.Summary,
+					Description: item.Description,
+					Hash:        item.Hash,
+					Timestamp:   item.Timestamp,
+				})
 			}
 
 			db.InsertBuild(database, types.Build{
