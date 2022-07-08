@@ -3,7 +3,7 @@ use actix_files::NamedFile;
 use actix_web::{get, HttpRequest, HttpResponse};
 use actix_web::http::header::{ContentDisposition, DispositionParam, DispositionType};
 use actix_web::web::{Data, Path, ServiceConfig};
-use mime_guess::{mime, Mime};
+use mime_guess::Mime;
 use serde::Serialize;
 use serde_json::json;
 use crate::{Config, SqlitePool, utils};
