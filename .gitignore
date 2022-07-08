@@ -1,14 +1,7 @@
-*
+/target
 
-!*.go
-!go.*
-!*.html
+/.idea
+*.iml
 
-!cli/
-!shared/
-!web/
-!web/docs/
-
-!LICENSE
-!README.md
-!build.sh
+/testing
+config.json
