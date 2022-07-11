@@ -1,6 +1,5 @@
-use std::fmt::format;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::Path;
 use actix_multipart_extract::{Multipart, MultipartForm};
 use actix_web::{HttpResponse, post};
@@ -10,7 +9,8 @@ use serde::Deserialize;
 use serde_json::json;
 use sqlx::SqlitePool;
 use crate::Config;
-use crate::models::{Build, Project, Version};
+use crate::models::{Project, Version};
+use crate::utils::router::{project, version};
 
 pub fn routes(config: &mut ServiceConfig) {
     config.service(create_build);
@@ -23,7 +23,7 @@ struct CreatePayload {
     version: String,
     build: String,
     result: String,
-    commits: Vec<PayloadCommit>,
+    commits: Vec<CreatePayloadCommit>,
     duration: i64,
     timestamp: i64,
 }
@@ -46,7 +46,6 @@ async fn create_build(pool: Data<SqlitePool>, payload: Json<CreatePayload>) -> H
     };
 
     let build = payload.build.clone();
-    let version_id = version_id.clone();
     let optional = match sqlx::query!("SELECT id FROM builds WHERE name = ? AND version_id = ?", build, version_id).fetch_optional(pool.as_ref()).await {
         Ok(optional) => optional,
         Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
@@ -74,6 +73,26 @@ async fn create_build(pool: Data<SqlitePool>, payload: Json<CreatePayload>) -> H
         "status": "ok",
         "build_id": build_id,
     }))
+}
+
+async fn get_version_id(pool: &SqlitePool, project: &String, version: &String) -> Result<String, HttpResponse> {
+    let id = nanoid!(10);
+    sqlx::query!("INSERT OR IGNORE INTO projects (id, name) VALUES (?, ?)", id, project).execute(pool).await;
+
+    let project = match Project::get(&pool, &project).await {
+        Ok(project) => project,
+        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+    }.unwrap();
+
+    let id = nanoid!(10);
+    sqlx::query!("INSERT OR IGNORE INTO versions (id, name, project_id) VALUES (?, ?, ?)", id, version, project.id).execute(pool).await;
+
+    let version = match Version::get(&pool, &version, &project.id).await {
+        Ok(version) => version,
+        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+    }.unwrap();
+
+    Ok(version.id)
 }
 
 #[derive(Deserialize, MultipartForm)]
@@ -119,24 +138,4 @@ async fn upload_file(pool: Data<SqlitePool>, config: Data<Config>, payload: Mult
     HttpResponse::Ok().json(json!({
         "status": "ok",
     }))
-}
-
-async fn get_version_id(pool: &SqlitePool, project: &String, version: &String) -> Result<String, HttpResponse> {
-    let id = nanoid!(10);
-    sqlx::query!("INSERT OR IGNORE INTO projects (id, name) VALUES (?, ?)", id, project).execute(pool).await;
-
-    let project = match Project::get(&pool, &project).await {
-        Ok(project) => project,
-        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
-    }.unwrap();
-
-    let id = nanoid!(10);
-    sqlx::query!("INSERT OR IGNORE INTO versions (id, name, project_id) VALUES (?, ?, ?)", id, version, project.id).execute(pool).await;
-
-    let version = match Version::get(&pool, &version, &project.id).await {
-        Ok(version) => version,
-        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
-    }.unwrap();
-
-    Ok(version.id)
 }

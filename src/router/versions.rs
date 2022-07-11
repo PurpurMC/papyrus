@@ -20,8 +20,8 @@ async fn get_version(pool: Data<SqlitePool>, path: Path<(String, String)>) -> Ht
 
     builds.sort_by(|a, b| a.created_at.cmp(&b.created_at));
 
-    let latest_build = builds.iter().rev().find(|build| build.result != "FAILURE").map(|build| &build.name);
-    let builds = builds.iter().map(|build| &build.name).collect::<Vec<&String>>();
+    let latest_build = builds.iter().filter(|build| build.hash.is_some()).rev().find(|build| build.result != "FAILURE").map(|build| &build.name);
+    let builds = builds.iter().filter(|build| build.hash.is_some()).map(|build| &build.name).collect::<Vec<&String>>();
 
     HttpResponse::Ok().json(json!({
         "project": project.name,
@@ -45,6 +45,10 @@ async fn get_version_detailed(pool: Data<SqlitePool>, path: Path<(String, String
     let mut res_builds = Vec::<crate::router::builds::Build>::new();
 
     for build in builds {
+        if build.hash.is_none() {
+            continue;
+        }
+
         res_builds.push(crate::router::builds::Build {
             project: project.name.clone(),
             version: version.name.clone(),
@@ -54,7 +58,7 @@ async fn get_version_detailed(pool: Data<SqlitePool>, path: Path<(String, String
                 Ok(commits) => commits,
                 Err(err) => return err,
             },
-            md5: build.hash.clone(),
+            md5: build.hash.unwrap_or("".into()),
             duration: build.duration,
             timestamp: build.timestamp,
         });

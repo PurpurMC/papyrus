@@ -31,6 +31,10 @@ async fn get_build(pool: Data<SqlitePool>, path: Path<(String, String, String)>)
         Err(err) => return err,
     };
 
+    if build.hash.is_none() {
+        return HttpResponse::NotFound().json(json!({ "error": "Build not found" }));
+    }
+
     HttpResponse::Ok().json(Build {
         project: project.name.clone(),
         version: version.name.clone(),
@@ -40,7 +44,7 @@ async fn get_build(pool: Data<SqlitePool>, path: Path<(String, String, String)>)
             Ok(commits) => commits,
             Err(err) => return err,
         },
-        md5: build.hash.clone(),
+        md5: build.hash.unwrap_or("".into()),
         duration: build.duration,
         timestamp: build.timestamp,
     })
