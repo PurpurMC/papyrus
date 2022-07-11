@@ -69,10 +69,11 @@ async fn download_build(req: HttpRequest, pool: Data<SqlitePool>, config: Data<C
         Err(err) => return HttpResponse::InternalServerError().json(json!({"error": err.to_string()})),
     };
 
-    file.set_content_type(mime_guess::from_ext(&*build.file_extension).first().unwrap_or(Mime::from_str("application/octet-stream").unwrap()))
+    let file_extension = build.file_extension.unwrap_or("".into());
+    file.set_content_type(mime_guess::from_ext(&file_extension).first().unwrap_or(Mime::from_str("application/octet-stream").unwrap()))
         .set_content_disposition(ContentDisposition {
             disposition: DispositionType::Attachment,
-            parameters: vec![DispositionParam::Filename(format!("{}-{}-{}.{}", project.name, version.name, build.name, build.file_extension))],
+            parameters: vec![DispositionParam::Filename(format!("{}-{}-{}.{}", project.name, version.name, build.name, file_extension))],
         })
         .into_response(&req)
 }

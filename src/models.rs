@@ -38,16 +38,18 @@ impl Version {
     }
 }
 
+// todo: verify that build exists before allowing it to be shown
 #[derive(Serialize, Deserialize)]
 pub struct Build {
     pub id: String,
     pub name: String,
     pub version_id: String,
     pub result: String,
-    pub hash: String,
     pub duration: i64,
     pub timestamp: i64,
-    pub file_extension: String,
+    pub hash: Option<String>,
+    pub file_extension: Option<String>,
+    pub uploaded: bool,
     pub created_at: NaiveDateTime
 }
 

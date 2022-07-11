@@ -25,10 +25,11 @@ CREATE TABLE builds
     name           TEXT             NOT NULL,
     version_id     TEXT             NOT NULL,
     result         TEXT             NOT NULL,
-    hash           TEXT             NOT NULL,
     duration       INTEGER          NOT NULL,
     timestamp      INTEGER          NOT NULL,
-    file_extension TEXT             NOT NULL,
+    hash           TEXT,
+    file_extension TEXT,
+    uploaded       BOOLEAN          NOT NULL DEFAULT FALSE,
     created_at     DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (version_id) REFERENCES versions (id)
 );
