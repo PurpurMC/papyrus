@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use actix_multipart_extract::{Multipart, MultipartForm};
-use actix_web::{HttpResponse, post};
+use actix_web::{HttpResponse, post, web};
 use actix_web::web::{Data, Json, ServiceConfig};
 use nanoid::nanoid;
 use serde::Deserialize;
@@ -10,11 +10,13 @@ use serde_json::json;
 use sqlx::SqlitePool;
 use crate::Config;
 use crate::models::{Project, Version};
-use crate::utils::router::{project, version};
 
 pub fn routes(config: &mut ServiceConfig) {
-    config.service(create_build);
-    config.service(upload_file);
+    config.service(
+        web::scope("/upload")
+            .service(create_build)
+            .service(upload_file)
+    );
 }
 
 #[derive(Deserialize)]
@@ -38,7 +40,7 @@ struct CreatePayloadCommit {
 }
 
 // todo: clean up after ourselves if something goes wrong
-#[post("/upload/create")]
+#[post("/create")]
 async fn create_build(pool: Data<SqlitePool>, payload: Json<CreatePayload>) -> HttpResponse {
     let version_id = match get_version_id(&pool, &payload.project, &payload.version).await {
         Ok(id) => id,
@@ -55,14 +57,14 @@ async fn create_build(pool: Data<SqlitePool>, payload: Json<CreatePayload>) -> H
         return HttpResponse::Conflict().json(json!({ "error": "Build already exists" }));
     }
 
-    let build_id = nanoid!(10);
+    let build_id = nanoid!();
     match sqlx::query!("INSERT INTO builds (id, name, version_id, result, duration, timestamp) VALUES (?, ?, ?, ?, ?, ?)", build_id, build, version_id, payload.result, payload.duration, payload.timestamp).execute(pool.as_ref()).await {
         Ok(_) => (),
         Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
     };
 
     for commit in &payload.commits {
-        let id = nanoid!(10);
+        let id = nanoid!();
         match sqlx::query!("INSERT INTO commits (id, build_id, author, email, description, hash, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)", id, build_id, commit.author, commit.email, commit.description, commit.hash, commit.timestamp).execute(pool.as_ref()).await {
             Ok(_) => (),
             Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
@@ -76,16 +78,22 @@ async fn create_build(pool: Data<SqlitePool>, payload: Json<CreatePayload>) -> H
 }
 
 async fn get_version_id(pool: &SqlitePool, project: &String, version: &String) -> Result<String, HttpResponse> {
-    let id = nanoid!(10);
-    sqlx::query!("INSERT OR IGNORE INTO projects (id, name) VALUES (?, ?)", id, project).execute(pool).await;
+    let id = nanoid!();
+    match sqlx::query!("INSERT OR IGNORE INTO projects (id, name) VALUES (?, ?)", id, project).execute(pool).await {
+        Ok(_) => (),
+        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+    };
 
     let project = match Project::get(&pool, &project).await {
         Ok(project) => project,
         Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
     }.unwrap();
 
-    let id = nanoid!(10);
-    sqlx::query!("INSERT OR IGNORE INTO versions (id, name, project_id) VALUES (?, ?, ?)", id, version, project.id).execute(pool).await;
+    let id = nanoid!();
+    match sqlx::query!("INSERT OR IGNORE INTO versions (id, name, project_id) VALUES (?, ?, ?)", id, version, project.id).execute(pool).await {
+        Ok(_) => (),
+        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+    };
 
     let version = match Version::get(&pool, &version, &project.id).await {
         Ok(version) => version,
@@ -104,7 +112,7 @@ struct UploadPayload {
 }
 
 // todo: clean up after ourselves if something goes wrong
-#[post("/upload/file")]
+#[post("/file")]
 async fn upload_file(pool: Data<SqlitePool>, config: Data<Config>, payload: Multipart<UploadPayload>) -> HttpResponse {
     let build_id = payload.build_id.clone();
     let optional = match sqlx::query!("SELECT id FROM builds WHERE id = ?", build_id).fetch_optional(pool.as_ref()).await {
@@ -133,7 +141,10 @@ async fn upload_file(pool: Data<SqlitePool>, config: Data<Config>, payload: Mult
     };
 
     let md5 = format!("{:x}", md5::compute(&payload.file.bytes));
-    sqlx::query!("UPDATE builds SET hash = ?, file_extension = ?, uploaded = TRUE WHERE id = ?", md5, payload.file_extension, build_id).execute(pool.as_ref()).await.unwrap();
+    match sqlx::query!("UPDATE builds SET hash = ?, file_extension = ?, uploaded = TRUE WHERE id = ?", md5, payload.file_extension, build_id).execute(pool.as_ref()).await {
+        Ok(_) => (),
+        Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
+    };
 
     HttpResponse::Ok().json(json!({
         "status": "ok",

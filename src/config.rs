@@ -1,20 +1,24 @@
 use std::fs::File;
 use std::net::SocketAddr;
 use std::path::Path;
+use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use crate::utils::Error;
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Config {
     pub host: SocketAddr,
     pub database: String,
+    pub auth_key: String,
 }
 
 impl Config {
     pub fn default() -> Config {
         Config {
             host: SocketAddr::new("0.0.0.0".parse().unwrap(), 8080),
-            database: "/srv/papyrus".into()
+            database: "/srv/papyrus".into(),
+            auth_key: nanoid!(128),
         }
     }
 

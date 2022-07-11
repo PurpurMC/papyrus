@@ -1,7 +1,7 @@
 CREATE TABLE projects
 (
     id         TEXT PRIMARY KEY NOT NULL,
-    name       TEXT             NOT NULL,
+    name       TEXT             NOT NULL UNIQUE,
     created_at DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -10,7 +10,7 @@ CREATE INDEX projects_name_idx ON projects (name);
 CREATE TABLE versions
 (
     id         TEXT PRIMARY KEY NOT NULL,
-    name       TEXT             NOT NULL,
+    name       TEXT             NOT NULL UNIQUE,
     project_id TEXT             NOT NULL,
     created_at DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects (id)
@@ -22,7 +22,7 @@ CREATE INDEX versions_project_id_idx ON versions (project_id);
 CREATE TABLE builds
 (
     id             TEXT PRIMARY KEY NOT NULL,
-    name           TEXT             NOT NULL,
+    name           TEXT             NOT NULL UNIQUE,
     version_id     TEXT             NOT NULL,
     result         TEXT             NOT NULL,
     duration       INTEGER          NOT NULL,
