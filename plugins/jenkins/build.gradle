@@ -30,8 +30,6 @@ jenkinsPlugin {
 
     repoUrl = "https://repo.purpurmc.org/releases"
     snapshotRepoUrl = "https://repo.purpurmc.org/snapshots"
-
-    fileExtension = "jpi"
 }
 
 tasks.named('server').configure {
