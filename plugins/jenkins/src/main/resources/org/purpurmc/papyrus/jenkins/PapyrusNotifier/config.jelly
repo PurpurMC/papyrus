@@ -1,0 +1,22 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:entry title="Papyrus URL" field="papyrusUrl" description="The URL of the papyrus server">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="Papyrus Auth Key" field="key" description="The auth key of the papyrus server">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="Project Name" field="project" description="The name of the project on papyrus">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="Project Version" field="version" description="The name of the project version on papyrus">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="Output File" field="file" description="The file to upload to papyrus">
+        <f:textbox />
+    </f:entry>
+</j:jelly>

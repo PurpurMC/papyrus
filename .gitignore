@@ -1,5 +1,9 @@
 /target
 
+.gradle/
+build/
+plugins/jenkins/work
+
 /.idea
 *.iml
 

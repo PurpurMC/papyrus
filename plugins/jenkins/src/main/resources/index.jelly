@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+    Plugin adding an easy integration with papyrus.
+</div>
