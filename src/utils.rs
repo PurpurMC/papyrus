@@ -14,16 +14,19 @@ pub enum Error {
 }
 
 pub mod router {
+    use crate::models::{Build, Project, Version};
     use actix_web::HttpResponse;
     use serde_json::json;
     use sqlx::SqlitePool;
-    use crate::models::{Build, Project, Version};
-    use crate::utils;
 
     pub async fn project(pool: &SqlitePool, name: &String) -> Result<Project, HttpResponse> {
         let project = match Project::get(&pool, name).await {
             Ok(project) => project,
-            Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+            Err(err) => {
+                return Err(
+                    HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+                )
+            }
         };
 
         match project {
@@ -32,10 +35,18 @@ pub mod router {
         }
     }
 
-    pub async fn version(pool: &SqlitePool, project: &Project, version: &String) -> Result<Version, HttpResponse> {
+    pub async fn version(
+        pool: &SqlitePool,
+        project: &Project,
+        version: &String,
+    ) -> Result<Version, HttpResponse> {
         let version = match Version::get(&pool, version, &project.id).await {
             Ok(version) => version,
-            Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+            Err(err) => {
+                return Err(
+                    HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+                )
+            }
         };
 
         match version {
@@ -44,21 +55,36 @@ pub mod router {
         }
     }
 
-    pub async fn build(pool: &SqlitePool, version: &Version, build: &String) -> Result<Build, HttpResponse> {
+    pub async fn build(
+        pool: &SqlitePool,
+        version: &Version,
+        build: &String,
+    ) -> Result<Build, HttpResponse> {
         if build == "latest" {
             let builds = match Build::all(&pool, &version.id).await {
                 Ok(builds) => builds,
-                Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })))
+                Err(err) => {
+                    return Err(HttpResponse::InternalServerError()
+                        .json(json!({ "error": err.to_string() })))
+                }
             };
 
-            match builds.iter().filter(|build| build.hash.is_some()).rev().find(|build| build.result != "FAILURE") {
+            match builds
+                .iter()
+                .filter(|build| build.hash.is_some())
+                .rev()
+                .find(|build| build.result != "FAILURE")
+            {
                 Some(build) => Ok(build.clone()),
                 None => Err(HttpResponse::NotFound().json(json!({ "error": "Build not found" }))),
             }
         } else {
             let build = match Build::get(&pool, build, &version.id).await {
                 Ok(build) => build,
-                Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+                Err(err) => {
+                    return Err(HttpResponse::InternalServerError()
+                        .json(json!({ "error": err.to_string() })))
+                }
             };
 
             match build {

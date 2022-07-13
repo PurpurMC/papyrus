@@ -1,9 +1,9 @@
+use crate::utils::Error;
+use nanoid::nanoid;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::net::SocketAddr;
 use std::path::Path;
-use nanoid::nanoid;
-use serde::{Deserialize, Serialize};
-use crate::utils::Error;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -23,7 +23,11 @@ impl Config {
     }
 
     pub fn load() -> Result<Config, Error> {
-        let config_path = Path::new("config.json"); // todo
+        let config_path = Path::new(if cfg!(debug_assertions) {
+            "config.json"
+        } else {
+            "/etc/papyrus.json"
+        });
 
         if !config_path.exists() {
             let config = Config::default();

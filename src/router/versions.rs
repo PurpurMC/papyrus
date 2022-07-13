@@ -1,10 +1,10 @@
-use actix_web::{get, HttpResponse};
-use actix_web::web::{Data, Path, ServiceConfig};
-use serde_json::json;
-use sqlx::SqlitePool;
 use crate::models::{Build, Project, Version};
 use crate::router::builds::BuildResponse;
 use crate::utils;
+use actix_web::web::{Data, Path, ServiceConfig};
+use actix_web::{get, HttpResponse};
+use serde_json::json;
+use sqlx::SqlitePool;
 
 pub fn routes(config: &mut ServiceConfig) {
     config.service(get_version);
@@ -21,8 +21,17 @@ async fn get_version(pool: Data<SqlitePool>, path: Path<(String, String)>) -> Ht
 
     builds.sort_by(|a, b| a.created_at.cmp(&b.created_at));
 
-    let latest_build = builds.iter().filter(|build| build.hash.is_some()).rev().find(|build| build.result != "FAILURE").map(|build| &build.name);
-    let builds = builds.iter().filter(|build| build.hash.is_some()).map(|build| &build.name).collect::<Vec<&String>>();
+    let latest_build = builds
+        .iter()
+        .filter(|build| build.hash.is_some())
+        .rev()
+        .find(|build| build.result != "FAILURE")
+        .map(|build| &build.name);
+    let builds = builds
+        .iter()
+        .filter(|build| build.hash.is_some())
+        .map(|build| &build.name)
+        .collect::<Vec<&String>>();
 
     HttpResponse::Ok().json(json!({
         "project": project.name,
@@ -35,7 +44,10 @@ async fn get_version(pool: Data<SqlitePool>, path: Path<(String, String)>) -> Ht
 }
 
 #[get("/{project}/{version}/detailed")]
-async fn get_version_detailed(pool: Data<SqlitePool>, path: Path<(String, String)>) -> HttpResponse {
+async fn get_version_detailed(
+    pool: Data<SqlitePool>,
+    path: Path<(String, String)>,
+) -> HttpResponse {
     let (project, version) = path.into_inner();
     let (project, version, mut builds) = match version_info(&pool, project, version).await {
         Ok((project, version, builds)) => (project, version, builds),
@@ -75,7 +87,11 @@ async fn get_version_detailed(pool: Data<SqlitePool>, path: Path<(String, String
     }))
 }
 
-async fn version_info(pool: &SqlitePool, project: String, version: String) -> Result<(Project, Version, Vec<Build>), HttpResponse> {
+async fn version_info(
+    pool: &SqlitePool,
+    project: String,
+    version: String,
+) -> Result<(Project, Version, Vec<Build>), HttpResponse> {
     let project = match utils::router::project(&pool, &project).await {
         Ok(projects) => projects,
         Err(err) => return Err(err),
@@ -88,6 +104,8 @@ async fn version_info(pool: &SqlitePool, project: String, version: String) -> Re
 
     match Build::all(&pool, &version.id).await {
         Ok(builds) => Ok((project, version, builds)),
-        Err(err) => Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })))
+        Err(err) => {
+            Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })))
+        }
     }
 }

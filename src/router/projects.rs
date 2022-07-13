@@ -1,9 +1,9 @@
-use actix_web::{get, HttpResponse};
-use actix_web::web::{Data, Path, ServiceConfig};
-use serde_json::json;
-use sqlx::SqlitePool;
 use crate::models::{Project, Version};
 use crate::utils;
+use actix_web::web::{Data, Path, ServiceConfig};
+use actix_web::{get, HttpResponse};
+use serde_json::json;
+use sqlx::SqlitePool;
 
 pub fn routes(config: &mut ServiceConfig) {
     config.service(list_projects);
@@ -14,11 +14,16 @@ pub fn routes(config: &mut ServiceConfig) {
 async fn list_projects(pool: Data<SqlitePool>) -> HttpResponse {
     let mut projects = match Project::all(&pool).await {
         Ok(projects) => projects,
-        Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+        }
     };
 
     projects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-    let projects = projects.iter().map(|project| &project.name).collect::<Vec<_>>();
+    let projects = projects
+        .iter()
+        .map(|project| &project.name)
+        .collect::<Vec<_>>();
 
     HttpResponse::Ok().json(json!({
         "projects": projects,
@@ -34,11 +39,16 @@ async fn get_project(pool: Data<SqlitePool>, project: Path<String>) -> HttpRespo
 
     let mut versions = match Version::all(&pool, &project.id).await {
         Ok(versions) => versions,
-        Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+        }
     };
 
     versions.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-    let versions = versions.iter().map(|versions| &versions.name).collect::<Vec<&String>>();
+    let versions = versions
+        .iter()
+        .map(|versions| &versions.name)
+        .collect::<Vec<&String>>();
 
     HttpResponse::Ok().json(json!({
         "project": project.name,

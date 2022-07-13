@@ -1,17 +1,17 @@
-use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
-use actix_web::{Error, HttpResponse};
-use actix_web::body::BoxBody;
-use actix_web::web::Data;
-use futures_util::future::{LocalBoxFuture, ok, Ready};
-use serde_json::json;
 use crate::Config;
+use actix_web::body::BoxBody;
+use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
+use actix_web::web::Data;
+use actix_web::{Error, HttpResponse};
+use futures_util::future::{ok, LocalBoxFuture, Ready};
+use serde_json::json;
 
 pub struct Authentication;
 
 impl<S> Transform<S, ServiceRequest> for Authentication
-    where
-        S: Service<ServiceRequest, Response=ServiceResponse<BoxBody>, Error=Error>,
-        S::Future: 'static,
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>,
+    S::Future: 'static,
 {
     type Response = ServiceResponse<BoxBody>;
     type Error = Error;
@@ -29,9 +29,9 @@ pub struct AuthenticationMiddleware<S> {
 }
 
 impl<S> Service<ServiceRequest> for AuthenticationMiddleware<S>
-    where
-        S: Service<ServiceRequest, Response=ServiceResponse<BoxBody>, Error=Error>,
-        S::Future: 'static,
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>,
+    S::Future: 'static,
 {
     type Response = ServiceResponse<BoxBody>;
     type Error = Error;
@@ -76,8 +76,7 @@ impl<S> Service<ServiceRequest> for AuthenticationMiddleware<S>
             })
         } else {
             let (request, _pl) = request.into_parts();
-            let response = HttpResponse::Found()
-                .json(json!({ "error": "Unauthorized" }));
+            let response = HttpResponse::Found().json(json!({ "error": "Unauthorized" }));
 
             Box::pin(async move { Ok(ServiceResponse::new(request, response)) })
         }

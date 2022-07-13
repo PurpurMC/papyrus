@@ -1,16 +1,16 @@
-use std::fs::File;
-use std::io::Write;
-use std::path::Path;
+use crate::models::{Project, Version};
+use crate::router::middleware::Authentication;
+use crate::Config;
 use actix_multipart_extract::{Multipart, MultipartForm};
-use actix_web::{HttpResponse, post, web};
 use actix_web::web::{Data, Json, ServiceConfig};
+use actix_web::{post, web, HttpResponse};
 use nanoid::nanoid;
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::SqlitePool;
-use crate::Config;
-use crate::models::{Project, Version};
-use crate::router::middleware::Authentication;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 
 // todo: clean up after ourselves if something goes wrong
 pub fn routes(config: &mut ServiceConfig) {
@@ -18,7 +18,7 @@ pub fn routes(config: &mut ServiceConfig) {
         web::scope("/upload")
             .wrap(Authentication)
             .service(create_build)
-            .service(upload_file)
+            .service(upload_file),
     );
 }
 
@@ -50,9 +50,18 @@ async fn create_build(pool: Data<SqlitePool>, payload: Json<CreatePayload>) -> H
     };
 
     let build = payload.build.clone();
-    let optional = match sqlx::query!("SELECT id FROM builds WHERE name = ? AND version_id = ?", build, version_id).fetch_optional(pool.as_ref()).await {
+    let optional = match sqlx::query!(
+        "SELECT id FROM builds WHERE name = ? AND version_id = ?",
+        build,
+        version_id
+    )
+    .fetch_optional(pool.as_ref())
+    .await
+    {
         Ok(optional) => optional,
-        Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+        }
     };
 
     if optional.is_some() {
@@ -79,28 +88,65 @@ async fn create_build(pool: Data<SqlitePool>, payload: Json<CreatePayload>) -> H
     }))
 }
 
-async fn get_version_id(pool: &SqlitePool, project: &String, version: &String) -> Result<String, HttpResponse> {
+async fn get_version_id(
+    pool: &SqlitePool,
+    project: &String,
+    version: &String,
+) -> Result<String, HttpResponse> {
     let id = nanoid!();
-    match sqlx::query!("INSERT OR IGNORE INTO projects (id, name) VALUES (?, ?)", id, project).execute(pool).await {
+    match sqlx::query!(
+        "INSERT OR IGNORE INTO projects (id, name) VALUES (?, ?)",
+        id,
+        project
+    )
+    .execute(pool)
+    .await
+    {
         Ok(_) => (),
-        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+        Err(err) => {
+            return Err(
+                HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+            )
+        }
     };
 
     let project = match Project::get(&pool, &project).await {
         Ok(project) => project,
-        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
-    }.unwrap();
+        Err(err) => {
+            return Err(
+                HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+            )
+        }
+    }
+    .unwrap();
 
     let id = nanoid!();
-    match sqlx::query!("INSERT OR IGNORE INTO versions (id, name, project_id) VALUES (?, ?, ?)", id, version, project.id).execute(pool).await {
+    match sqlx::query!(
+        "INSERT OR IGNORE INTO versions (id, name, project_id) VALUES (?, ?, ?)",
+        id,
+        version,
+        project.id
+    )
+    .execute(pool)
+    .await
+    {
         Ok(_) => (),
-        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+        Err(err) => {
+            return Err(
+                HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+            )
+        }
     };
 
     let version = match Version::get(&pool, &version, &project.id).await {
         Ok(version) => version,
-        Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
-    }.unwrap();
+        Err(err) => {
+            return Err(
+                HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+            )
+        }
+    }
+    .unwrap();
 
     Ok(version.id)
 }
@@ -114,11 +160,20 @@ struct UploadPayload {
 }
 
 #[post("/file")]
-async fn upload_file(pool: Data<SqlitePool>, config: Data<Config>, payload: Multipart<UploadPayload>) -> HttpResponse {
+async fn upload_file(
+    pool: Data<SqlitePool>,
+    config: Data<Config>,
+    payload: Multipart<UploadPayload>,
+) -> HttpResponse {
     let build_id = payload.build_id.clone();
-    let optional = match sqlx::query!("SELECT id FROM builds WHERE id = ?", build_id).fetch_optional(pool.as_ref()).await {
+    let optional = match sqlx::query!("SELECT id FROM builds WHERE id = ?", build_id)
+        .fetch_optional(pool.as_ref())
+        .await
+    {
         Ok(optional) => optional,
-        Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+        }
     };
 
     if optional.is_none() {
@@ -133,18 +188,32 @@ async fn upload_file(pool: Data<SqlitePool>, config: Data<Config>, payload: Mult
 
     let mut file = match File::create(&filename) {
         Ok(file) => file,
-        Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+        }
     };
 
     match file.write_all(&payload.file.bytes) {
         Ok(_) => (),
-        Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+        }
     };
 
     let md5 = format!("{:x}", md5::compute(&payload.file.bytes));
-    match sqlx::query!("UPDATE builds SET hash = ?, file_extension = ? WHERE id = ?", md5, payload.file_extension, build_id).execute(pool.as_ref()).await {
+    match sqlx::query!(
+        "UPDATE builds SET hash = ?, file_extension = ? WHERE id = ?",
+        md5,
+        payload.file_extension,
+        build_id
+    )
+    .execute(pool.as_ref())
+    .await
+    {
         Ok(_) => (),
-        Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))
+        }
     };
 
     HttpResponse::Ok().json(json!({
