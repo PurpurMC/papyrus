@@ -56,7 +56,7 @@ impl<S> Service<ServiceRequest> for AuthenticationMiddleware<S>
                 Err(_) => break false,
             };
 
-            if auth_parts.len() != 2 || auth_parts[0] != "Bearer" {
+            if auth_parts.len() != 2 || auth_parts[0] != "Token" {
                 break false;
             }
 
