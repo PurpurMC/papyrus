@@ -18,6 +18,7 @@ pub mod router {
     use serde_json::json;
     use sqlx::SqlitePool;
     use crate::models::{Build, Project, Version};
+    use crate::utils;
 
     pub async fn project(pool: &SqlitePool, name: &String) -> Result<Project, HttpResponse> {
         let project = match Project::get(&pool, name).await {
@@ -44,14 +45,26 @@ pub mod router {
     }
 
     pub async fn build(pool: &SqlitePool, version: &Version, build: &String) -> Result<Build, HttpResponse> {
-        let build = match Build::get(&pool, build, &version.id).await {
-            Ok(build) => build,
-            Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
-        };
+        if build == "latest" {
+            let builds = match Build::all(&pool, &version.id).await {
+                Ok(builds) => builds,
+                Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })))
+            };
 
-        match build {
-            Some(build) => Ok(build),
-            None => Err(HttpResponse::NotFound().json(json!({ "error": "Build not found" }))),
+            match builds.iter().filter(|build| build.hash.is_some()).rev().find(|build| build.result != "FAILURE") {
+                Some(build) => Ok(build.clone()),
+                None => Err(HttpResponse::NotFound().json(json!({ "error": "Build not found" }))),
+            }
+        } else {
+            let build = match Build::get(&pool, build, &version.id).await {
+                Ok(build) => build,
+                Err(err) => return Err(HttpResponse::InternalServerError().json(json!({ "error": err.to_string() }))),
+            };
+
+            match build {
+                Some(build) => Ok(build),
+                None => Err(HttpResponse::NotFound().json(json!({ "error": "Build not found" }))),
+            }
         }
     }
 }
