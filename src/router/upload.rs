@@ -10,10 +10,13 @@ use serde_json::json;
 use sqlx::SqlitePool;
 use crate::Config;
 use crate::models::{Project, Version};
+use crate::router::middleware::Authentication;
 
+// todo: clean up after ourselves if something goes wrong
 pub fn routes(config: &mut ServiceConfig) {
     config.service(
         web::scope("/upload")
+            .wrap(Authentication)
             .service(create_build)
             .service(upload_file)
     );
@@ -39,7 +42,6 @@ struct CreatePayloadCommit {
     timestamp: i64,
 }
 
-// todo: clean up after ourselves if something goes wrong
 #[post("/create")]
 async fn create_build(pool: Data<SqlitePool>, payload: Json<CreatePayload>) -> HttpResponse {
     let version_id = match get_version_id(&pool, &payload.project, &payload.version).await {
@@ -111,7 +113,6 @@ struct UploadPayload {
     file_extension: String,
 }
 
-// todo: clean up after ourselves if something goes wrong
 #[post("/file")]
 async fn upload_file(pool: Data<SqlitePool>, config: Data<Config>, payload: Multipart<UploadPayload>) -> HttpResponse {
     let build_id = payload.build_id.clone();
@@ -141,7 +142,7 @@ async fn upload_file(pool: Data<SqlitePool>, config: Data<Config>, payload: Mult
     };
 
     let md5 = format!("{:x}", md5::compute(&payload.file.bytes));
-    match sqlx::query!("UPDATE builds SET hash = ?, file_extension = ?, uploaded = TRUE WHERE id = ?", md5, payload.file_extension, build_id).execute(pool.as_ref()).await {
+    match sqlx::query!("UPDATE builds SET hash = ?, file_extension = ? WHERE id = ?", md5, payload.file_extension, build_id).execute(pool.as_ref()).await {
         Ok(_) => (),
         Err(err) => return HttpResponse::InternalServerError().json(json!({ "error": err.to_string() })),
     };

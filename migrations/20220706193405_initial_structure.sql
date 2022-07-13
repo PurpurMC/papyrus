@@ -29,7 +29,6 @@ CREATE TABLE builds
     timestamp      INTEGER          NOT NULL,
     hash           TEXT,
     file_extension TEXT,
-    uploaded       BOOLEAN          NOT NULL DEFAULT FALSE,
     created_at     DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (version_id) REFERENCES versions (id)
 );

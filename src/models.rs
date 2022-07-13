@@ -38,7 +38,6 @@ impl Version {
     }
 }
 
-// todo: verify that build exists before allowing it to be shown
 #[derive(Serialize, Deserialize)]
 pub struct Build {
     pub id: String,
@@ -49,7 +48,6 @@ pub struct Build {
     pub timestamp: i64,
     pub hash: Option<String>,
     pub file_extension: Option<String>,
-    pub uploaded: bool,
     pub created_at: NaiveDateTime
 }
 
