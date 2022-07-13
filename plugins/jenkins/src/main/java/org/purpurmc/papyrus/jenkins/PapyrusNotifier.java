@@ -3,6 +3,8 @@ package org.purpurmc.papyrus.jenkins;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -13,7 +15,9 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Mailer;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
 import org.purpurmc.papyrus.jenkins.uploader.PapyrusUploader;
 import org.purpurmc.papyrus.jenkins.uploader.payload.CreateBuildPayload;
 import org.purpurmc.papyrus.jenkins.uploader.payload.UploadFilePayload;
@@ -32,11 +36,20 @@ public class PapyrusNotifier extends Recorder {
 
     @DataBoundConstructor
     public PapyrusNotifier(String url, String key, String project, String version, String file) {
+        /*
         this.url = url;
         this.key = key;
         this.project = project;
         this.version = version;
         this.file = file;
+         */
+
+        // todo: this is a hacky workaround of a bug in Jenkins in development
+        this.url = "http://127.0.0.1:8000";
+        this.key = "key";
+        this.project = "purpur";
+        this.version = "1.19";
+        this.file = "output.txt";
     }
 
     @Override
@@ -53,7 +66,7 @@ public class PapyrusNotifier extends Recorder {
         CreateBuildPayload createBuildPayload = new CreateBuildPayload();
         createBuildPayload.setProject(project);
         createBuildPayload.setVersion(version);
-        createBuildPayload.setBuild(build.getDisplayName());
+        createBuildPayload.setBuild(String.valueOf(build.getNumber()));
         createBuildPayload.setResult(String.valueOf(build.getResult()));
         createBuildPayload.setDuration(build.getDuration());
         createBuildPayload.setTimestamp(build.getTimeInMillis());
@@ -103,6 +116,19 @@ public class PapyrusNotifier extends Recorder {
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
+        }
+
+        @Override
+        public Publisher newInstance(@Nullable StaplerRequest req, @NonNull JSONObject formData) throws FormException {
+            System.out.println("newInstance");
+            System.out.println(formData);
+            return new PapyrusNotifier(
+                    formData.getString("url"),
+                    formData.getString("key"),
+                    formData.getString("project"),
+                    formData.getString("version"),
+                    formData.getString("file")
+            );
         }
     }
 }

@@ -3,6 +3,7 @@ use actix_web::web::{Data, Path, ServiceConfig};
 use serde_json::json;
 use sqlx::SqlitePool;
 use crate::models::{Build, Project, Version};
+use crate::router::builds::BuildResponse;
 use crate::utils;
 
 pub fn routes(config: &mut ServiceConfig) {
@@ -42,14 +43,14 @@ async fn get_version_detailed(pool: Data<SqlitePool>, path: Path<(String, String
     };
 
     builds.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-    let mut res_builds = Vec::<crate::router::builds::Build>::new();
+    let mut res_builds = Vec::<BuildResponse>::new();
 
     for build in builds {
         if build.hash.is_none() {
             continue;
         }
 
-        res_builds.push(crate::router::builds::Build {
+        res_builds.push(BuildResponse {
             project: project.name.clone(),
             version: version.name.clone(),
             build: build.name.clone(),

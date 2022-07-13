@@ -38,7 +38,7 @@ impl Version {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Build {
     pub id: String,
     pub name: String,

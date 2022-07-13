@@ -32,24 +32,15 @@ public class PapyrusUploader {
         this.gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         this.client = HttpClient.newHttpClient();
 
-        if (!url.endsWith("/")) {
-            url += "/";
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
         }
 
-         /*
         this.url = url;
         this.key = key;
         this.project = project;
         this.version = version;
         this.file = file;
-         */
-
-        this.url = "http://127.0.0.1:8000";
-        this.key = "key";
-        this.project = "purpur";
-        this.version = "1.19";
-        this.file = "output.txt";
-
     }
 
     public Result<String, String> create(CreateBuildPayload payload) {
