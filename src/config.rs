@@ -5,12 +5,20 @@ use std::fs::File;
 use std::net::SocketAddr;
 use std::path::Path;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
     pub host: SocketAddr,
     pub database: String,
     pub auth_key: String,
+    pub docs: Docs,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Docs {
+    pub enabled: bool,
+    pub path: String,
 }
 
 impl Config {
@@ -19,6 +27,10 @@ impl Config {
             host: SocketAddr::new("0.0.0.0".parse().unwrap(), 8080),
             database: "/srv/papyrus".into(),
             auth_key: nanoid!(128),
+            docs: Docs {
+                enabled: false,
+                path: "/var/www/papyrus".into(),
+            },
         }
     }
 

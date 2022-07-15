@@ -1,5 +1,6 @@
 use crate::config::Config;
-use actix_web::middleware::Logger;
+use actix_files::Files;
+use actix_web::middleware::{Logger, NormalizePath};
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
@@ -10,6 +11,7 @@ use std::str::FromStr;
 use std::{fs, io};
 
 mod config;
+mod middleware;
 mod models;
 mod router;
 mod utils;
@@ -36,11 +38,20 @@ async fn main() -> io::Result<()> {
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 
     HttpServer::new(move || {
-        App::new()
+        let config = Config::load().unwrap();
+
+        let mut app = App::new()
             .wrap(Logger::default())
+            .wrap(NormalizePath::trim())
             .app_data(Data::new(pool.clone()))
-            .app_data(Data::new(Config::load().unwrap()))
-            .service(web::scope("/v2").configure(router::setup))
+            .app_data(Data::new(config.clone()))
+            .service(web::scope("/v2").configure(router::setup));
+
+        if config.docs.enabled {
+            app = app.service(Files::new("/", config.docs.path).index_file("index.html"));
+        }
+
+        return app;
     })
     .bind(config.host)?
     .run()

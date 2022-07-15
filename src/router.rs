@@ -1,7 +1,6 @@
 use actix_web::web::ServiceConfig;
 
 mod builds;
-mod middleware;
 mod projects;
 mod upload;
 mod versions;

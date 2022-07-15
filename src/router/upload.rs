@@ -1,5 +1,5 @@
+use crate::middleware::Authentication;
 use crate::models::{Project, Version};
-use crate::router::middleware::Authentication;
 use crate::Config;
 use actix_multipart_extract::{Multipart, MultipartForm};
 use actix_web::web::{Data, Json, ServiceConfig};
