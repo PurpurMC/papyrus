@@ -28,9 +28,7 @@ jobs:
         with:
           java-version: 11
           distribution: adopt
-      - uses: gradle/gradle-build-action@v2
-        with:
-          arguments: jpi
+      - run: ./gradlew jpi --stacktrace
       - uses: actions/upload-artifact@v2
         with:
           name: papyrus
