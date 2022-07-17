@@ -25,8 +25,8 @@ jobs:
         with:
           java-version: 11
           distribution: adopt
-      - run: cd plugins/jenkins
       - run: ./gradlew jpi --stacktrace
+        working-directory: ./plugins/jenkins
       - uses: actions/upload-artifact@v2
         with:
           name: papyrus
