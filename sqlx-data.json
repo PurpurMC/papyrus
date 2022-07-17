@@ -1,0 +1,407 @@
+{
+  "db": "SQLite",
+  "0878d76d4877d42a7e55432ef92412880102f7f49ccbc9547a1db30d7ce737a1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT id FROM builds WHERE id = ?"
+  },
+  "16aca487288926010cd2bc6ad073343803e27a665aab4929717641b51cfbbdd0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 2,
+          "type_info": "Datetime"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM projects WHERE name = ?"
+  },
+  "1aaaf1284f8ffbde2305921612ced6347e4a7fe430d093f4ffe4144e46544d2f": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "version_id",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "result",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "duration",
+          "ordinal": 4,
+          "type_info": "Int64"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 5,
+          "type_info": "Int64"
+        },
+        {
+          "name": "hash",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "file_extension",
+          "ordinal": 7,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 8,
+          "type_info": "Datetime"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "SELECT * FROM builds WHERE name = ? AND version_id = ?"
+  },
+  "3f943fc32d1d8e3420a77c3d7b07f4dca3b8da2b87051072abbbd45f957bc358": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 3
+      }
+    },
+    "query": "UPDATE builds SET hash = ?, file_extension = ? WHERE id = ?"
+  },
+  "478034fa9a6f736e4339acd2287995aaa820c7a19f570f06d18b84cfd254a682": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "project_id",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Datetime"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "SELECT * FROM versions WHERE name = ? AND project_id = ?"
+  },
+  "5094fbd2193d2db637e106bf9628df9f630f73222d6a60b9a3c04cd5c5befe49": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "INSERT OR IGNORE INTO projects (id, name) VALUES (?, ?)"
+  },
+  "8482da66fb4c815cf21576e0b5c8121f5cb3a96b0a3f5e8241dbd677860c62af": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 2,
+          "type_info": "Datetime"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 0
+      }
+    },
+    "query": "SELECT * FROM projects"
+  },
+  "849867d0177b9cca770171d4ff739bad99c1d47206a6c786a71e64f44d80cdca": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "project_id",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Datetime"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM versions WHERE project_id = ?"
+  },
+  "a1d35e6db000508b26ac14e968a0b928c53546194dae077c33bc1f380f9d43ce": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 3
+      }
+    },
+    "query": "INSERT OR IGNORE INTO versions (id, name, project_id) VALUES (?, ?, ?)"
+  },
+  "d69acd41d55d0978fa589ac9e8f53be084bc1b1606d1cd72f89767f49b2b2ce4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "version_id",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "result",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "duration",
+          "ordinal": 4,
+          "type_info": "Int64"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 5,
+          "type_info": "Int64"
+        },
+        {
+          "name": "hash",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "file_extension",
+          "ordinal": 7,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 8,
+          "type_info": "Datetime"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM builds WHERE version_id = ?"
+  },
+  "d996dd84f6e984993f993dc58d85c29dd73e1dfc3b08d0e0efba7a7768df910b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "SELECT id FROM builds WHERE name = ? AND version_id = ?"
+  },
+  "eae36c14ac55c01927a4dd2c813c3f24622996ae7b0123a9f587f955e805e622": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "build_id",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "author",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "email",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "description",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "hash",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 6,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM commits WHERE build_id = ?"
+  },
+  "ee8b5eff2becdfe6a700bc48cc91d920ac6f0a256b6a25d12a498b4a022d8ed7": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 7
+      }
+    },
+    "query": "INSERT INTO commits (id, build_id, author, email, description, hash, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  },
+  "f293ea25a55ee5534dcbb2241783c8e7e0986bfc1335eb7a431ede510f91772f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 6
+      }
+    },
+    "query": "INSERT INTO builds (id, name, version_id, result, duration, timestamp) VALUES (?, ?, ?, ?, ?, ?)"
+  }
+}

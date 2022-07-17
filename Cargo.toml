@@ -27,7 +27,7 @@ features = ["preserve_order"]
 
 [dependencies.sqlx]
 version = "0.6.0"
-features = ["sqlite", "runtime-actix-rustls", "migrate", "chrono"]
+features = ["sqlite", "runtime-actix-rustls", "migrate", "chrono", "offline"]
 
 [dependencies.chrono]
 version = "0.4.19"

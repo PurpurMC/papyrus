@@ -19,17 +19,15 @@ jobs:
           path: target/release/papyrus
   build-jenkins:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./plugins/jenkins
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v3
         with:
           java-version: 11
           distribution: adopt
+      - run: cd plugins/jenkins
       - run: ./gradlew jpi --stacktrace
       - uses: actions/upload-artifact@v2
         with:
           name: papyrus
-          path: build/libs/papyrus-jenkins.hpi
+          path: plugins/jenkins/build/libs/papyrus-jenkins.hpi
