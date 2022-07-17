@@ -100,6 +100,7 @@ public class PapyrusUploader {
             return Result.error(e.getMessage());
         }
 
+        System.out.println(responsePayload.body());
         UploadFileResponse response = gson.fromJson(responsePayload.body(), UploadFileResponse.class);
         if (responsePayload.statusCode() != 200 || response.getError() != null) {
             return Result.error(response.getError() == null ? response.getStatus() : response.getError());
