@@ -1,11 +1,11 @@
 [package]
 name = "papyrus"
-version = "0.1.0"
+version = "2.0.0-indev"
 edition = "2021"
 
 [dependencies]
 actix-web = "4.1.0"
-actix-files = "0.6.1"
+actix-files = "0.6.2"
 actix-multipart-extract = "0.1.4"
 
 nanoid = "0.4.0"
@@ -13,22 +13,25 @@ mime_guess = "2.0.4"
 md5 = "0.7.0"
 env_logger = "0.9.0"
 
-thiserror = "1.0.31"
 dotenv = "0.15.0"
 futures-util = "0.3.21"
 
 [dependencies.serde]
-version = "1.0.138"
+version = "1.0.139"
 features = ["derive"]
 
 [dependencies.serde_json]
-version = "1.0.82"
+version = "1.0.83"
 features = ["preserve_order"]
 
 [dependencies.sqlx]
-version = "0.6.0"
+version = "0.6.1"
 features = ["sqlite", "runtime-actix-rustls", "migrate", "chrono", "offline"]
 
 [dependencies.chrono]
-version = "0.4.19"
+version = "0.4.22"
 features = ["serde"]
+
+[dependencies.derive_more]
+version = "0.99.17"
+features = ["error", "display"]

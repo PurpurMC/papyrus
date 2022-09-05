@@ -1,7 +1,7 @@
-use crate::utils::Error;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
+use std::io::Error;
 use std::net::SocketAddr;
 use std::path::Path;
 
@@ -10,7 +10,7 @@ use std::path::Path;
 pub struct Config {
     pub host: SocketAddr,
     pub database: String,
-    pub auth_key: String,
+    pub auth_key: String, // todo: better auth keys system
     pub docs: Docs,
 }
 
@@ -34,7 +34,7 @@ impl Config {
         }
     }
 
-    pub fn load() -> Result<Config, Error> {
+    pub fn load() -> Result<(bool, Config), Error> {
         let config_path = Path::new(if cfg!(debug_assertions) {
             "config.json"
         } else {
@@ -43,13 +43,11 @@ impl Config {
 
         if !config_path.exists() {
             let config = Config::default();
-            let file = File::create(config_path)?;
-            serde_json::to_writer_pretty(file, &config)?;
-            Ok(config)
+            serde_json::to_writer_pretty(File::create(config_path)?, &config)?;
+            Ok((true, config))
         } else {
-            let file = File::open(config_path)?;
-            let config: Config = serde_json::from_reader(file)?;
-            Ok(config)
+            let config: Config = serde_json::from_reader(File::open(config_path)?)?;
+            Ok((false, config))
         }
     }
 }

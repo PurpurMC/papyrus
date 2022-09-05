@@ -1,34 +1,34 @@
+use crate::types::response::DefaultResponse;
 use crate::Config;
 use actix_web::body::BoxBody;
 use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
 use actix_web::web::Data;
 use actix_web::{Error, HttpResponse};
 use futures_util::future::{ok, LocalBoxFuture, Ready};
-use serde_json::json;
 
-pub struct Authentication;
+pub struct RequireKey;
 
-impl<S> Transform<S, ServiceRequest> for Authentication
+impl<S> Transform<S, ServiceRequest> for RequireKey
 where
     S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>,
     S::Future: 'static,
 {
     type Response = ServiceResponse<BoxBody>;
     type Error = Error;
-    type Transform = AuthenticationMiddleware<S>;
+    type Transform = RequireKeyMiddleware<S>;
     type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ok(AuthenticationMiddleware { service })
+        ok(RequireKeyMiddleware { service })
     }
 }
 
-pub struct AuthenticationMiddleware<S> {
+pub struct RequireKeyMiddleware<S> {
     service: S,
 }
 
-impl<S> Service<ServiceRequest> for AuthenticationMiddleware<S>
+impl<S> Service<ServiceRequest> for RequireKeyMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>,
     S::Future: 'static,
@@ -46,37 +46,29 @@ where
                 None => break false,
             };
 
-            let auth = match request.headers().get("Authorization") {
+            let header = match request.headers().get("Authorization") {
                 Some(auth) => auth,
                 None => break false,
             };
 
-            let auth_parts = match auth.to_str() {
+            let header_parts = match header.to_str() {
                 Ok(auth_parts) => auth_parts.split(' ').collect::<Vec<&str>>(),
                 Err(_) => break false,
             };
 
-            if auth_parts.len() != 2 || auth_parts[0] != "Token" {
-                break false;
-            }
-
-            let key = auth_parts[1];
-            if config.auth_key != key {
-                break false;
-            }
-
-            break true;
+            break header_parts.len() != 2
+                && header_parts[0] != "Token"
+                && header_parts[1] != config.auth_key;
         };
 
         if passed {
             let future = self.service.call(request);
-            Box::pin(async move {
-                let res = future.await?;
-                Ok(res)
-            })
+            Box::pin(async move { Ok(future.await?) })
         } else {
-            let (request, _pl) = request.into_parts();
-            let response = HttpResponse::Found().json(json!({ "error": "Unauthorized" }));
+            let (request, _payload) = request.into_parts();
+            let response = HttpResponse::Unauthorized().json(DefaultResponse {
+                message: "Invalid authorization key".into(),
+            });
 
             Box::pin(async move { Ok(ServiceResponse::new(request, response)) })
         }
