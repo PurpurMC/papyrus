@@ -19,7 +19,7 @@ pub async fn get_version(
     path: Path<(String, String)>,
 ) -> Result<HttpResponse> {
     let (project, version) = path.into_inner();
-    let (project, version, latest, builds) = get_version_info(project, version, &pool).await?;
+    let (latest, builds) = get_version_info(&project, &version, &pool).await?;
 
     let latest = latest.map(|build| build.name.clone());
     let builds = builds.iter().map(|build| build.name.clone()).collect();
@@ -40,7 +40,7 @@ pub async fn get_version_detailed(
     path: Path<(String, String)>,
 ) -> Result<HttpResponse> {
     let (project, version) = path.into_inner();
-    let (project, version, latest, builds) = get_version_info(project, version, &pool).await?;
+    let (latest, builds) = get_version_info(&project, &version, &pool).await?;
 
     let latest = match latest {
         Some(build) => Some(build.to_response(&project, &version, &pool).await?),
@@ -63,10 +63,10 @@ pub async fn get_version_detailed(
 }
 
 async fn get_version_info(
-    project: String,
-    version: String,
+    project: &String,
+    version: &String,
     pool: &Data<SqlitePool>,
-) -> Result<(String, String, Option<Build>, Vec<Build>)> {
+) -> Result<(Option<Build>, Vec<Build>)> {
     let project = verify(Project::find_one(&project, &pool).await?)?;
     let version = verify(Version::find_one(&project.id, &version, &pool).await?)?;
 
@@ -86,5 +86,5 @@ async fn get_version_info(
         found
     };
 
-    Ok((project.name, version.name, latest, builds))
+    Ok((latest, builds))
 }

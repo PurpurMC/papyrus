@@ -36,19 +36,6 @@ CREATE TABLE builds
 CREATE INDEX builds_name_idx ON builds (name);
 CREATE INDEX builds_version_id_idx ON builds (version_id);
 
-CREATE TABLE files
-(
-    id         TEXT PRIMARY KEY NOT NULL,
-    build_id   TEXT,
-    hash       TEXT             NOT NULL,
-    extension  TEXT,
-    created_at DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (build_id) REFERENCES builds (id)
-);
-
-CREATE INDEX files_id_idx ON files (id);
-CREATE INDEX files_build_id_idx ON files (build_id);
-
 CREATE TABLE commits
 (
     id          TEXT PRIMARY KEY NOT NULL,
@@ -58,7 +45,29 @@ CREATE TABLE commits
     description TEXT             NOT NULL,
     hash        TEXT             NOT NULL,
     timestamp   INTEGER          NOT NULL,
+    created_at DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (build_id) REFERENCES builds (id)
 );
 
 CREATE INDEX commits_build_id_idx ON commits (build_id);
+
+CREATE TABLE files
+(
+    id         TEXT PRIMARY KEY NOT NULL,
+    build_id   TEXT             NOT NULL,
+    hash       TEXT             NOT NULL,
+    extension  TEXT             NOT NULL DEFAULT '',
+    created_at DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (build_id) REFERENCES builds (id)
+);
+
+CREATE INDEX files_build_id_idx ON files (build_id);
+
+CREATE TABLE temp_files
+(
+    id         TEXT PRIMARY KEY NOT NULL,
+    extension  TEXT             NOT NULL,
+    created_at DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX temp_files_created_at_idx ON temp_files (created_at);
