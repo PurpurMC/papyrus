@@ -9,6 +9,7 @@ use std::{fs, io};
 mod config;
 mod server;
 mod types;
+mod utils;
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
@@ -21,6 +22,7 @@ async fn main() -> io::Result<()> {
         return Ok(());
     }
 
+    fs::create_dir_all(format!("{}/temp", &config.database))?;
     fs::create_dir_all(format!("{}/files", &config.database))?;
 
     let pool = SqlitePool::connect_with(

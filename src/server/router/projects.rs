@@ -1,7 +1,10 @@
+use crate::types::models::{Project, Version};
 use crate::types::response::{ProjectResponse, ProjectsResponse};
-use crate::types::Response;
-use actix_web::get;
-use actix_web::web::{Path, ServiceConfig};
+use crate::types::Result;
+use crate::utils::{response, verify};
+use crate::SqlitePool;
+use actix_web::web::{Data, Path, ServiceConfig};
+use actix_web::{get, HttpResponse};
 
 pub fn routes(config: &mut ServiceConfig) {
     config.service(all_projects);
@@ -9,13 +12,29 @@ pub fn routes(config: &mut ServiceConfig) {
 }
 
 #[get("")]
-pub async fn all_projects() -> Response<ProjectsResponse> {
-    todo!()
+pub async fn all_projects(pool: Data<SqlitePool>) -> Result<HttpResponse> {
+    let projects = Project::all(&pool).await?;
+    let projects: Vec<String> = projects
+        .iter()
+        .map(|project| project.name.clone())
+        .collect();
+
+    response(ProjectsResponse { projects })
 }
 
 #[get("/{project}")]
-pub async fn get_project(path: Path<String>) -> Response<ProjectResponse> {
+pub async fn get_project(pool: Data<SqlitePool>, path: Path<String>) -> Result<HttpResponse> {
     let project = path.into_inner();
+    let project = verify(Project::find_one(&project, &pool).await?)?;
 
-    todo!()
+    let versions = Version::find_all(&project.id, &pool).await?;
+    let versions: Vec<String> = versions
+        .iter()
+        .map(|version| version.name.clone())
+        .collect();
+
+    response(ProjectResponse {
+        project: project.name,
+        versions,
+    })
 }

@@ -33,7 +33,7 @@ pub struct VersionResponseBuilds {
 pub struct VersionResponseDetailed {
     pub project: String,
     pub version: String,
-    pub builds: VersionResponseBuilds,
+    pub builds: VersionResponseDetailedBuilds,
 }
 
 #[derive(Serialize)]
@@ -50,8 +50,8 @@ pub struct BuildResponse {
     pub commits: Vec<BuildResponseCommit>,
     pub result: String,
     pub md5: String,
-    pub duration: u64,
-    pub timestamp: u64,
+    pub duration: i64,
+    pub timestamp: i64,
 }
 
 #[derive(Serialize)]
@@ -60,7 +60,7 @@ pub struct BuildResponseCommit {
     pub email: String,
     pub description: String,
     pub hash: String,
-    pub timestamp: u64,
+    pub timestamp: i64,
 }
 
 #[derive(Serialize)]

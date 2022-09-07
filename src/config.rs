@@ -41,12 +41,12 @@ impl Config {
             "/etc/papyrus.json"
         });
 
-        if !config_path.exists() {
-            let config = Config::default();
-            serde_json::to_writer_pretty(File::create(config_path)?, &config)?;
+        if config_path.exists() {
+            let config: Config = serde_json::from_reader(File::open(config_path)?)?;
             Ok((true, config))
         } else {
-            let config: Config = serde_json::from_reader(File::open(config_path)?)?;
+            let config = Config::default();
+            serde_json::to_writer_pretty(File::create(config_path)?, &config)?;
             Ok((false, config))
         }
     }
