@@ -21,13 +21,11 @@ pub async fn get_build(
     path: Path<(String, String, String)>,
 ) -> Result<HttpResponse> {
     let (project, version, build) = path.into_inner();
-    let project = verify(Project::find_one(&project, &pool).await?)?;
-    let version = verify(Version::find_one(&project.id, &version, &pool).await?)?;
-    let build = verify(Build::find_one(&version.id, &build, &pool).await?)?;
+    let build = get_build_info(&project, &version, &build, &pool).await?;
 
     response(
         build
-            .to_response(&project.name, &version.name, &pool)
+            .to_response(&project, &version, &pool)
             .await?,
     )
 }
@@ -40,9 +38,7 @@ pub async fn download_build(
     path: Path<(String, String, String)>,
 ) -> Result<HttpResponse> {
     let (project, version, build) = path.into_inner();
-    let project = verify(Project::find_one(&project, &pool).await?)?;
-    let version = verify(Version::find_one(&project.id, &version, &pool).await?)?;
-    let build = verify(Build::find_one(&version.id, &build, &pool).await?)?;
+    let build = get_build_info(&project, &version, &build, &pool).await?;
     let file = verify(File::find_one(&build.id, &pool).await?)?;
 
     let path = format!("{}/files/{}", &config.database, &file.id);
@@ -64,8 +60,22 @@ pub async fn download_build(
             disposition: DispositionType::Attachment,
             parameters: vec![DispositionParam::Filename(format!(
                 "{}-{}-{}.{}",
-                &project.name, &version.name, &build.name, &file_extension
+                &project, &version, &build.name, &file_extension
             ))],
         })
         .into_response(&request))
+}
+
+async fn get_build_info(project: &String, version: &String, build: &String, pool: &SqlitePool) -> Result<Build> {
+    let project = verify(Project::find_one(&project, &pool).await?)?;
+    let version = verify(Version::find_one(&project.id, &version, &pool).await?)?;
+
+    Ok(if build.eq_ignore_ascii_case("latest") {
+        let mut builds = Build::find_all(&version.id, &pool).await?;
+        builds.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+
+        builds[0].clone()
+    } else {
+        verify(Build::find_one(&version.id, &build, &pool).await?)?
+    })
 }
