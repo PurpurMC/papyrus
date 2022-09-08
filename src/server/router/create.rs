@@ -15,14 +15,14 @@ use std::path::Path;
 
 pub fn routes(config: &mut ServiceConfig) {
     config.service(
-        web::scope("")
+        web::scope("create")
             .wrap(RequireKey)
             .service(upload_file)
             .service(create_build),
     );
 }
 
-#[post("/create/file")]
+#[post("/file")]
 pub async fn upload_file(
     payload: Multipart<UploadFileRequest>,
     pool: Data<SqlitePool>,
@@ -47,7 +47,7 @@ pub async fn upload_file(
     response(UploadFileResponse { id: temp_file.id })
 }
 
-#[post("/create/build")]
+#[post("/build")]
 pub async fn create_build(
     payload: Json<CreateBuildRequest>,
     pool: Data<SqlitePool>,

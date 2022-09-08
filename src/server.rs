@@ -1,18 +1,36 @@
+use crate::server::tasks::{ClearTemp, Task};
 use crate::Config;
 use actix_files::Files;
 use actix_web::middleware::{Logger, NormalizePath};
+use actix_web::rt::time;
 use actix_web::web::Data;
-use actix_web::{web, App, HttpServer};
+use actix_web::{rt, web, App, HttpServer};
 use sqlx::SqlitePool;
 use std::io::Result;
 
 mod middleware;
 mod router;
+mod tasks;
 
 pub async fn spin(config: Config, pool: SqlitePool) -> Result<()> {
-    let cloned_config = config.clone();
+    let tasks: Vec<Box<dyn Task>> = vec![Box::new(ClearTemp {
+        config: config.clone(),
+        pool: pool.clone(),
+    })];
+
+    for task in tasks {
+        rt::spawn(async move {
+            let mut interval = time::interval(task.duration());
+            loop {
+                interval.tick().await;
+                let _ = task.run().await;
+            }
+        });
+    }
+
+    let server_config = config.clone();
     HttpServer::new(move || {
-        let config = cloned_config.clone();
+        let config = server_config.clone();
 
         let mut app = App::new()
             .wrap(Logger::default())

@@ -1,7 +1,6 @@
 use crate::types::request::{CreateBuildRequest, CreateBuildRequestCommit};
 use crate::types::response::{BuildResponse, BuildResponseCommit};
 use crate::types::{Error, Result};
-use crate::utils::verify;
 use crate::SqlitePool;
 use chrono::NaiveDateTime;
 use nanoid::nanoid;
@@ -198,7 +197,7 @@ impl Build {
         project: &String,
         version: &String,
         pool: &SqlitePool,
-    ) -> Result<BuildResponse> {
+    ) -> Result<Option<BuildResponse>> {
         let commits = Commit::find_all(&self.id, pool).await?;
         let commits = commits
             .iter()
@@ -211,18 +210,25 @@ impl Build {
             })
             .collect();
 
-        let file = verify(File::find_one(&self.id, pool).await?)?;
+        let hash = if &self.result == "SUCCESS" {
+            match File::find_one(&self.id, pool).await? {
+                Some(hash) => hash.hash,
+                None => return Ok(None),
+            }
+        } else {
+            "".into()
+        };
 
-        Ok(BuildResponse {
+        Ok(Some(BuildResponse {
             project: project.clone(),
             version: version.clone(),
             build: self.name.clone(),
             commits,
             result: self.result.clone(),
-            md5: file.hash.clone(),
+            md5: hash,
             duration: self.duration,
             timestamp: self.timestamp,
-        })
+        }))
     }
 }
 

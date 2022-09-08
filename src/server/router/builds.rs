@@ -23,11 +23,7 @@ pub async fn get_build(
     let (project, version, build) = path.into_inner();
     let build = get_build_info(&project, &version, &build, &pool).await?;
 
-    response(
-        build
-            .to_response(&project, &version, &pool)
-            .await?,
-    )
+    response(verify(build.to_response(&project, &version, &pool).await?)?)
 }
 
 #[get("/{project}/{version}/{build}/download")]
@@ -66,7 +62,12 @@ pub async fn download_build(
         .into_response(&request))
 }
 
-async fn get_build_info(project: &String, version: &String, build: &String, pool: &SqlitePool) -> Result<Build> {
+async fn get_build_info(
+    project: &String,
+    version: &String,
+    build: &String,
+    pool: &SqlitePool,
+) -> Result<Build> {
     let project = verify(Project::find_one(&project, &pool).await?)?;
     let version = verify(Version::find_one(&project.id, &version, &pool).await?)?;
 

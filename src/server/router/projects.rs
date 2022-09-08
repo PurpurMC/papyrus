@@ -27,7 +27,8 @@ pub async fn get_project(pool: Data<SqlitePool>, path: Path<String>) -> Result<H
     let project = path.into_inner();
     let project = verify(Project::find_one(&project, &pool).await?)?;
 
-    let versions = Version::find_all(&project.id, &pool).await?;
+    let mut versions = Version::find_all(&project.id, &pool).await?;
+    versions.sort_by(|a, b| a.created_at.cmp(&b.created_at));
     let versions: Vec<String> = versions
         .iter()
         .map(|version| version.name.clone())
