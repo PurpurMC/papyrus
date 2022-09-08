@@ -72,8 +72,15 @@ async fn get_build_info(
     let version = verify(Version::find_one(&project.id, &version, &pool).await?)?;
 
     Ok(if build.eq_ignore_ascii_case("latest") {
-        let mut builds = Build::find_all(&version.id, &pool).await?;
-        builds.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        let mut all_builds = Build::find_all(&version.id, &pool).await?;
+        all_builds.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+
+        let mut builds = Vec::new();
+        for build in all_builds {
+            if build.result == "FAILURE" || File::find_one(&build.id, &pool).await?.is_some() {
+                builds.push(build);
+            }
+        }
 
         builds[0].clone()
     } else {
