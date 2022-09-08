@@ -56,9 +56,9 @@ where
                 Err(_) => break false,
             };
 
-            break header_parts.len() != 2
-                && header_parts[0] != "Token"
-                && header_parts[1] != config.auth_key;
+            break header_parts.len() == 2
+                && header_parts[0].eq("Token")
+                && config.keys.contains(&header_parts[1].to_string())
         };
 
         if passed {

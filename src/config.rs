@@ -10,7 +10,7 @@ use std::path::Path;
 pub struct Config {
     pub host: SocketAddr,
     pub database: String,
-    pub auth_key: String, // todo: better auth keys system
+    pub keys: Vec<String>,
     pub docs: Docs,
 }
 
@@ -26,7 +26,7 @@ impl Config {
         Config {
             host: SocketAddr::new("0.0.0.0".parse().unwrap(), 8080),
             database: "/srv/papyrus".into(),
-            auth_key: nanoid!(128),
+            keys: vec![],
             docs: Docs {
                 enabled: false,
                 path: "/var/www/papyrus".into(),
