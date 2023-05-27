@@ -6,6 +6,7 @@ build/
 
 *.db
 data/
+application.yaml
 
 ### STS ###
 .apt_generated

@@ -19,6 +19,9 @@ public interface BuildRepository extends JpaRepository<Build, UUID> {
 
     List<Build> findAllByVersionAndFileNotNullOrderByTimestampAsc(Version version);
 
+    @Query("SELECT b FROM Build b WHERE b.result = 'SUCCESS' AND b.version = :version AND b.name = :name AND b.file IS NOT null")
+    Optional<Build> findByVersionAndNameAndFileNotNullAndResultIsSuccess(Version version, String name);
+
     @Query("SELECT b FROM Build b WHERE b.result = 'SUCCESS' AND b.version = :version AND b.file IS NOT null ORDER BY timestamp DESC LIMIT 1")
     Optional<Build> findLatestByVersionAndFileNotNull(@Param("version") Version version);
 }

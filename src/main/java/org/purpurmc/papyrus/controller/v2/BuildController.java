@@ -83,8 +83,9 @@ public class BuildController {
         Version version = versionRepository.findByProjectAndName(project, versionName).orElseThrow(VersionNotFound::new);
         Build build = (buildName.equals("latest")
                 ? buildRepository.findLatestByVersionAndFileNotNull(version)
-                : buildRepository.findByVersionAndNameAndFileNotNull(version, buildName)
+                : buildRepository.findByVersionAndNameAndFileNotNullAndResultIsSuccess(version, buildName)
         ).orElseThrow(BuildNotFound::new);
+
         File file = fileRepository.findByBuild(build).orElseThrow(BuildNotFound::new);
 
         MediaType mediaType;

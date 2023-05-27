@@ -34,7 +34,7 @@ create table commit
     id          uuid not null,
     author      varchar(255),
     email       varchar(255),
-    description varchar(255),
+    description varchar(10000),
     hash        varchar(255),
     timestamp   bigint,
     build_id    uuid,

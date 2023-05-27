@@ -4,6 +4,9 @@ spring:
   datasource:
     url: jdbc:h2:file:{ database_path }
 
+server:
+  port: { server_port }
+
 app:
   file-storage: { file_storage_path }
   auth-token: { auth_token }
