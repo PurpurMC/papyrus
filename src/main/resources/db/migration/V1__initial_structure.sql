@@ -8,7 +8,7 @@ create table project
 create table version
 (
     id         uuid not null,
-    name       varchar(255) unique,
+    name       varchar(255),
     project_id uuid,
     primary key (id),
     constraint UniqueNameAndProject unique (project_id, name)
@@ -18,7 +18,7 @@ create table version
 create table build
 (
     id         uuid not null,
-    name       varchar(255) unique,
+    name       varchar(255),
     result     varchar(255) check (result in ('SUCCESS', 'FAILURE')),
     timestamp  bigint,
     duration   bigint,

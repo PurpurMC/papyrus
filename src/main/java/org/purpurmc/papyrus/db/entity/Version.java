@@ -21,7 +21,6 @@ public class Version {
     private UUID id;
 
     @Nonnull
-    @Column(unique = true)
     private String name;
 
     @Nonnull
