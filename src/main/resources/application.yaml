@@ -8,6 +8,15 @@ spring:
     resources:
       add-mappings: false
 
+springdoc:
+  api-docs:
+    path: "/openapi"
+  swagger-ui:
+    disable-swagger-default-url: true
+    show-common-extensions: true
+    operations-sorter: "alpha"
+    path: "/docs/"
+
 server:
   error:
     whitelabel:

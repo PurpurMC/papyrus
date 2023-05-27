@@ -1,5 +1,8 @@
 package org.purpurmc.papyrus.controller.v2;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.purpurmc.papyrus.db.entity.Project;
 import org.purpurmc.papyrus.db.entity.Version;
@@ -7,10 +10,12 @@ import org.purpurmc.papyrus.db.repository.ProjectRepository;
 import org.purpurmc.papyrus.db.repository.VersionRepository;
 import org.purpurmc.papyrus.exception.ProjectNotFound;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,23 +34,25 @@ public class ProjectController {
 
     @GetMapping
     @ResponseBody
-    public ListProjects listProjects() {
+    @Operation(summary = "List all projects")
+    public ProjectsResponse listProjects() {
         List<Project> projects = projectRepository.findAll();
-        return new ListProjects(projects.stream().map(Project::getName).toList());
+        return new ProjectsResponse(projects.stream().map(Project::getName).toList());
     }
 
-    private record ListProjects(List<String> projects) {
+    private record ProjectsResponse(List<String> projects) {
     }
 
     @GetMapping("/{project}")
     @ResponseBody
-    public GetProject getProject(@PathVariable("project") String projectName) {
+    @Operation(summary = "Get a project")
+    public ProjectResponse getProject(@PathVariable("project") String projectName) {
         Project project = projectRepository.findByName(projectName).orElseThrow(ProjectNotFound::new);
         List<Version> versions = versionRepository.findAllByProject(project);
 
-        return new GetProject(project.getName(), versions.stream().map(Version::getName).toList());
+        return new ProjectResponse(project.getName(), versions.stream().map(Version::getName).toList());
     }
 
-    private record GetProject(String project, List<String> versions) {
+    private record ProjectResponse(String project, List<String> versions) {
     }
 }

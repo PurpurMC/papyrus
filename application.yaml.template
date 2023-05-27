@@ -1,6 +1,4 @@
 spring:
-  jpa:
-    show-sql: false
   datasource:
     url: jdbc:h2:file:{ database_path }
 
@@ -10,3 +8,6 @@ server:
 app:
   file-storage: { file_storage_path }
   auth-token: { auth_token }
+
+  api-title: { api_title }
+  api-url: { api_url }

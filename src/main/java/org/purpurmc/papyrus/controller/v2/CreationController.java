@@ -1,5 +1,6 @@
 package org.purpurmc.papyrus.controller.v2;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.purpurmc.papyrus.config.AppConfiguration;
 import org.purpurmc.papyrus.db.entity.Build;
 import org.purpurmc.papyrus.db.entity.Commit;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Hidden
 @RestController
 @RequestMapping("/v2/create")
 public class CreationController {

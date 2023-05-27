@@ -1,5 +1,6 @@
 package org.purpurmc.papyrus.controller.v2;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.purpurmc.papyrus.config.AppConfiguration;
 import org.purpurmc.papyrus.db.entity.Build;
@@ -57,7 +58,8 @@ public class BuildController {
 
     @GetMapping("/{build}")
     @ResponseBody
-    public GetBuild getBuild(@PathVariable("project") String projectName, @PathVariable("version") String versionName, @PathVariable("build") String buildName) {
+    @Operation(summary = "Get a versions' build")
+    public BuildResponse getBuild(@PathVariable("project") String projectName, @PathVariable("version") String versionName, @PathVariable("build") String buildName) {
         Project project = projectRepository.findByName(projectName).orElseThrow(ProjectNotFound::new);
         Version version = versionRepository.findByProjectAndName(project, versionName).orElseThrow(VersionNotFound::new);
         Build build = (buildName.equals("latest")
@@ -66,18 +68,19 @@ public class BuildController {
         ).orElseThrow(BuildNotFound::new);
         List<Commit> commits = commitRepository.findAllByBuild(build);
 
-        List<GetBuild.Commits> responseCommits = commits.stream().map(commit -> new GetBuild.Commits(commit.getAuthor(), commit.getEmail(), commit.getDescription(), commit.getHash(), commit.getTimestamp())).toList();
-        return new GetBuild(project.getName(), version.getName(), build.getName(), build.getResult().toString(), build.getTimestamp(), build.getDuration(), responseCommits, build.getHash());
+        List<BuildResponse.BuildCommits> responseCommits = commits.stream().map(commit -> new BuildResponse.BuildCommits(commit.getAuthor(), commit.getEmail(), commit.getDescription(), commit.getHash(), commit.getTimestamp())).toList();
+        return new BuildResponse(project.getName(), version.getName(), build.getName(), build.getResult().toString(), build.getTimestamp(), build.getDuration(), responseCommits, build.getHash());
     }
 
-    private record GetBuild(String project, String version, String build, String result, Long timestamp, Long duration,
-                            List<Commits> commits, String md5) {
-        public record Commits(String author, String email, String description, String hash, Long timestamp) {
+    private record BuildResponse(String project, String version, String build, String result, Long timestamp, Long duration,
+                            List<BuildCommits> commits, String md5) {
+        public record BuildCommits(String author, String email, String description, String hash, Long timestamp) {
         }
     }
 
     @GetMapping("/{build}/download")
     @ResponseBody
+    @Operation(summary = "Download a build")
     public ResponseEntity<Resource> downloadBuild(@PathVariable("project") String projectName, @PathVariable("version") String versionName, @PathVariable("build") String buildName) throws IOException {
         Project project = projectRepository.findByName(projectName).orElseThrow(ProjectNotFound::new);
         Version version = versionRepository.findByProjectAndName(project, versionName).orElseThrow(VersionNotFound::new);

@@ -1,5 +1,6 @@
 package org.purpurmc.papyrus.controller.v2;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.purpurmc.papyrus.db.entity.Build;
 import org.purpurmc.papyrus.db.entity.Project;
 import org.purpurmc.papyrus.db.entity.Version;
@@ -34,17 +35,18 @@ public class VersionController {
 
     @GetMapping("/{version}")
     @ResponseBody
-    public GetVersion getVersion(@PathVariable("project") String projectName, @PathVariable("version") String versionName) {
+    @Operation(summary = "Get a project's version")
+    public VersionResponse getVersion(@PathVariable("project") String projectName, @PathVariable("version") String versionName) {
         Project project = projectRepository.findByName(projectName).orElseThrow(ProjectNotFound::new);
         Version version = versionRepository.findByProjectAndName(project, versionName).orElseThrow(VersionNotFound::new);
         List<Build> builds = buildRepository.findAllByVersionAndFileNotNullOrderByTimestampAsc(version);
         Optional<Build> latest = buildRepository.findLatestByVersionAndFileNotNull(version);
 
-        return new GetVersion(project.getName(), version.getName(), new GetVersion.Builds(latest.map(Build::getName), builds.stream().map(Build::getName).toList()));
+        return new VersionResponse(project.getName(), version.getName(), new VersionResponse.VersionBuilds(latest.map(Build::getName), builds.stream().map(Build::getName).toList()));
     }
 
-    private record GetVersion(String project, String version, Builds builds) {
-        public record Builds(Optional<String> latest, List<String> all) {
+    private record VersionResponse(String project, String version, VersionBuilds builds) {
+        public record VersionBuilds(Optional<String> latest, List<String> all) {
         }
     }
 }
