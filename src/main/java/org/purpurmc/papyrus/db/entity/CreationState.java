@@ -29,9 +29,9 @@ public class CreationState {
     public CreationState() {
     }
 
-    public CreationState(Build build, Optional<String> fileExtension) {
+    public CreationState(Build build, String fileExtension) {
         this.build = build;
-        this.fileExtension = fileExtension.orElse(null);
+        this.fileExtension = fileExtension;
     }
 
     public UUID getId() {

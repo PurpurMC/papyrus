@@ -97,16 +97,18 @@ public class CreationController {
         }
 
         Build build = buildRepository.save(new Build(version, body.build, body.result, body.timestamp, body.duration));
-        commitRepository.saveAll(body.commits.stream().map(commit -> new Commit(build, commit.author, commit.email, commit.description, commit.hash, commit.timestamp)).toList());
+        if (body.commits != null) {
+            commitRepository.saveAll(body.commits.stream().map(commit -> new Commit(build, commit.author, commit.email, commit.description, commit.hash, commit.timestamp)).toList());
+        }
 
         CreationState id = creationStateRepository.save(new CreationState(build, body.fileExtension));
         return new CreateBuild(id.getId().toString());
     }
 
     private record CreateBuildBody(String project, String version, String build, Build.BuildResult result,
-                                   Long timestamp, Long duration, List<CommitBody> commits,
-                                   Optional<String> fileExtension) {
-        public record CommitBody(String author, String email, String description, String hash, Long timestamp) {
+                                   long timestamp, long duration, List<CommitBody> commits,
+                                   String fileExtension) {
+        public record CommitBody(String author, String email, String description, String hash, long timestamp) {
         }
     }
 
@@ -115,7 +117,7 @@ public class CreationController {
 
     @PostMapping("/upload")
     @ResponseBody
-    public ResponseEntity<String> uploadFile(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestHeader("X-STATE-KEY") String stateKey, @RequestParam("file") MultipartFile uploadFile) {
+    public ResponseEntity<String> uploadFile(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestParam("stateKey") String stateKey, @RequestParam("file") MultipartFile uploadFile) {
         this.requireAuth(authHeader);
 
         CreationState state;
