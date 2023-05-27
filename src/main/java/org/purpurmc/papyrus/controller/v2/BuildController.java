@@ -72,7 +72,7 @@ public class BuildController {
         return new BuildResponse(project.getName(), version.getName(), build.getName(), build.getResult().toString(), build.getTimestamp(), build.getDuration(), responseCommits, build.getHash());
     }
 
-    private record BuildResponse(String project, String version, String build, String result, long timestamp, long duration,
+    public record BuildResponse(String project, String version, String build, String result, long timestamp, long duration,
                             List<BuildCommits> commits, String md5) {
         public record BuildCommits(String author, String email, String description, String hash, long timestamp) {
         }
