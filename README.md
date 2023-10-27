@@ -1,9 +1,9 @@
-# 📜 Papyrus <!-- NYEH HEH HEH -->
+# Papyrus
 
-Repository for [Purpur](https://purpurmc.org/) downloads [API](https://api.purpurmc.org)
+Downloads API for [Purpur](https://purpurmc.org/) builds.
 
-The OpenAPI [specification](https://api.purpurmc.org/openapi) can be found [here (swagger)](https://api.purpurmc.org/docs/swagger-ui/index.html)
+API: https://api.purpurmc.org
 
-## Running
+OpenAPI Spec: https://api.purpurmc.org/openapi
 
-Java 17 is required. Copy `application.yaml.template` as `application.yaml`, fill the values and then run using `gradlew run`
+SwaggerDocs: https://api.purpurmc.org/docs/
