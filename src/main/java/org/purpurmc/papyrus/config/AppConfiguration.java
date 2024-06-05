@@ -11,6 +11,9 @@ public class AppConfiguration {
     private String apiTitle;
     private String apiUrl;
 
+    private boolean enableCors;
+    private String allowedOrigins;
+
     public String getFileStorage() {
         return this.fileStorage;
     }
@@ -41,5 +44,21 @@ public class AppConfiguration {
 
     public void setApiUrl(String apiUrl) {
         this.apiUrl = apiUrl;
+    }
+
+    public boolean getEnableCors() {
+        return enableCors;
+    }
+
+    public void setEnableCors(boolean enableCors) {
+        this.enableCors = enableCors;
+    }
+
+    public String getAllowedOrigins() {
+        return allowedOrigins;
+    }
+
+    public void setAllowedOrigins(String allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
     }
 }
