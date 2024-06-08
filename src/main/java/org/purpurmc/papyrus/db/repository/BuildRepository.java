@@ -15,13 +15,18 @@ import java.util.UUID;
 public interface BuildRepository extends JpaRepository<Build, UUID> {
     boolean existsByVersionAndName(Version version, String name);
 
-    Optional<Build> findByVersionAndNameAndFileNotNull(Version version, String name);
+    @Query("SELECT b FROM Build b WHERE b.version = :version AND b.name = :name AND b.ready = 1")
+    Optional<Build> findByVersionAndNameAndReady(Version version, String name);
 
-    List<Build> findAllByVersionAndFileNotNullOrderByTimestampAsc(Version version);
+    @Query("SELECT b FROM Build b WHERE b.version = :version AND b.ready = 1 ORDER BY timestamp ASC")
+    List<Build> findAllByVersionAndReadyOrderByTimestampAsc(Version version);
 
-    @Query("SELECT b FROM Build b WHERE b.result = 'SUCCESS' AND b.version = :version AND b.name = :name AND b.file IS NOT null")
+    @Query("SELECT b FROM Build b WHERE b.version = :version AND b.name = :name AND b.ready = 1 AND b.result = 'SUCCESS'")
+    Optional<Build> findByVersionAndNameAndReadyAndResultIsSuccess(Version version, String name);
+
+    @Query("SELECT b FROM Build b WHERE b.version = :version AND b.name = :name AND b.file IS NOT null AND b.result = 'SUCCESS'")
     Optional<Build> findByVersionAndNameAndFileNotNullAndResultIsSuccess(Version version, String name);
 
-    @Query("SELECT b FROM Build b WHERE b.result = 'SUCCESS' AND b.version = :version AND b.file IS NOT null ORDER BY timestamp DESC LIMIT 1")
-    Optional<Build> findLatestByVersionAndFileNotNull(@Param("version") Version version);
+    @Query("SELECT b FROM Build b WHERE b.version = :version AND b.file IS NOT null AND b.result = 'SUCCESS' ORDER BY timestamp DESC LIMIT 1")
+    Optional<Build> findLatestByVersionAndFileNotNull(Version version);
 }

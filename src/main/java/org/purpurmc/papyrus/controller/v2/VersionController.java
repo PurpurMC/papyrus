@@ -46,7 +46,7 @@ public class VersionController {
     public ResponseEntity<?> getVersion(@PathVariable("project") String projectName, @PathVariable("version") String versionName, @RequestParam(value = "detailed", required = false) String detailed) {
         Project project = projectRepository.findByName(projectName).orElseThrow(ProjectNotFound::new);
         Version version = versionRepository.findByProjectAndName(project, versionName).orElseThrow(VersionNotFound::new);
-        List<Build> builds = buildRepository.findAllByVersionAndFileNotNullOrderByTimestampAsc(version);
+        List<Build> builds = buildRepository.findAllByVersionAndReadyOrderByTimestampAsc(version);
         Optional<Build> latest = buildRepository.findLatestByVersionAndFileNotNull(version);
 
         if (detailed != null) {
