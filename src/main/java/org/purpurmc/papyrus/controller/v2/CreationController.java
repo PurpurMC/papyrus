@@ -96,9 +96,18 @@ public class CreationController {
             version = versionRepository.save(new Version(project, body.version));
         }
 
-        Build build = buildRepository.save(new Build(version, body.build, body.result, body.timestamp, body.duration));
+        int ready = 0;
+        if (body.result != Build.BuildResult.SUCCESS) {
+            ready = 1;
+        }
+
+        Build build = buildRepository.save(new Build(version, body.build, body.result, body.timestamp, body.duration, ready));
         if (body.commits != null) {
             commitRepository.saveAll(body.commits.stream().map(commit -> new Commit(build, commit.author, commit.email, commit.description, commit.hash, commit.timestamp)).toList());
+        }
+
+        if (ready == 1) {
+            return new CreateBuild(null);
         }
 
         CreationState id = creationStateRepository.save(new CreationState(build, body.fileExtension));
@@ -134,10 +143,6 @@ public class CreationController {
             throw new FileUploadError();
         }
 
-        Build build = state.getBuild();
-        build.setHash(DigestUtils.md5DigestAsHex(bytes));
-        buildRepository.save(build);
-
         String contentType;
         try {
             Path tempFile = Files.createTempFile("papyrus", state.getId().toString());
@@ -148,6 +153,8 @@ public class CreationController {
             throw new FileUploadError();
         }
 
+        Build build = state.getBuild();
+
         File file = fileRepository.save(new File(build, contentType, state.getFileExtension()));
         try {
             Path path = Path.of(configuration.getFileStorage(), file.getId().toString());
@@ -155,6 +162,10 @@ public class CreationController {
         } catch (Exception e) {
             throw new FileUploadError();
         }
+
+        build.setHash(DigestUtils.md5DigestAsHex(bytes));
+        build.setReady(1);
+        buildRepository.save(build);
 
         creationStateRepository.delete(state);
         return ResponseEntity.ok("");

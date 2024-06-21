@@ -64,7 +64,7 @@ public class BuildController {
         Version version = versionRepository.findByProjectAndName(project, versionName).orElseThrow(VersionNotFound::new);
         Build build = (buildName.equals("latest")
                 ? buildRepository.findLatestByVersionAndFileNotNull(version)
-                : buildRepository.findByVersionAndNameAndFileNotNull(version, buildName)
+                : buildRepository.findByVersionAndNameAndReady(version, buildName)
         ).orElseThrow(BuildNotFound::new);
         List<Commit> commits = commitRepository.findAllByBuild(build);
 

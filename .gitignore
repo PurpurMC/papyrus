@@ -38,3 +38,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### Java ###
+*.jar

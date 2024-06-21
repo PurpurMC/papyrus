@@ -41,6 +41,9 @@ public class Build {
     private String hash;
 
     @Nonnull
+    private int ready;
+
+    @Nonnull
     @ManyToOne
     @JoinColumn(name = "VERSION_ID", referencedColumnName = "ID")
     private Version version;
@@ -52,17 +55,18 @@ public class Build {
     public Build() {
     }
 
-    public Build(Version version, String name, BuildResult result, Long timestamp, Long duration) {
-        this(version, name, result, timestamp, duration, null);
+    public Build(Version version, String name, BuildResult result, Long timestamp, Long duration, int ready) {
+        this(version, name, result, timestamp, duration, null, ready);
     }
 
-    public Build(Version version, String name, BuildResult result, Long timestamp, Long duration, String hash) {
+    public Build(Version version, String name, BuildResult result, Long timestamp, Long duration, String hash, int ready) {
         this.version = version;
         this.name = name;
         this.result = result;
         this.timestamp = timestamp;
         this.duration = duration;
         this.hash = hash;
+        this.ready = ready;
     }
 
     public UUID getId() {
@@ -91,6 +95,14 @@ public class Build {
 
     public void setHash(String hash) {
         this.hash = hash;
+    }
+
+    public int getReady() {
+        return this.ready;
+    }
+
+    public void setReady(int ready) {
+        this.ready = ready;
     }
 
     public enum BuildResult {
