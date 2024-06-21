@@ -127,22 +127,6 @@ public class CreationController {
         return new CreateBuild(id.getId().toString());
     }
 
-    private record CreateBuildBody(String project,
-                                   String version,
-                                   String build,
-                                   Build.BuildResult result,
-                                   long timestamp,
-                                   long duration,
-                                   List<CommitBody> commits,
-                                   Map<String, String> metadata,
-                                   String fileExtension) {
-        public record CommitBody(String author, String email, String description, String hash, long timestamp) {
-        }
-    }
-
-    private record CreateBuild(String stateKey) {
-    }
-
     @PostMapping("/upload")
     @ResponseBody
     public ResponseEntity<String> uploadFile(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestParam("stateKey") String stateKey, @RequestParam("file") MultipartFile uploadFile) {
@@ -203,5 +187,21 @@ public class CreationController {
         if (!parts[1].equals(configuration.getAuthToken())) {
             throw new InvalidAuthToken();
         }
+    }
+
+    private record CreateBuildBody(String project,
+                                   String version,
+                                   String build,
+                                   Build.BuildResult result,
+                                   long timestamp,
+                                   long duration,
+                                   List<CommitBody> commits,
+                                   Map<String, String> metadata,
+                                   String fileExtension) {
+        public record CommitBody(String author, String email, String description, String hash, long timestamp) {
+        }
+    }
+
+    private record CreateBuild(String stateKey) {
     }
 }

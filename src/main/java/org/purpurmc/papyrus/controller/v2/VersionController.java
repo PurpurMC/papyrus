@@ -79,17 +79,6 @@ public class VersionController {
         }
     }
 
-    private record VersionResponse(String project, String version, VersionBuilds builds) {
-        public record VersionBuilds(Optional<String> latest, List<String> all) {
-        }
-    }
-
-    private record VersionResponseDetailed(String project, String version, VersionBuildsDetailed builds) {
-        public record VersionBuildsDetailed(Optional<BuildController.BuildResponse> latest,
-                                            List<BuildController.BuildResponse> all) {
-        }
-    }
-
     private BuildController.BuildResponse convertToBuildResponse(Project project, Version version, Build build) {
         List<Commit> commits = commitRepository.findAllByBuild(build);
         List<BuildController.BuildResponse.BuildCommits> responseCommits = commits.stream().map(commit -> new BuildController.BuildResponse.BuildCommits(commit.getAuthor(), commit.getEmail(), commit.getDescription(), commit.getHash(), commit.getTimestamp())).toList();
@@ -102,5 +91,16 @@ public class VersionController {
         }
 
         return new BuildController.BuildResponse(project.getName(), version.getName(), build.getName(), build.getResult().toString(), build.getTimestamp(), build.getDuration(), responseCommits, responseMetadata, build.getHash());
+    }
+
+    private record VersionResponse(String project, String version, VersionBuilds builds) {
+        public record VersionBuilds(Optional<String> latest, List<String> all) {
+        }
+    }
+
+    private record VersionResponseDetailed(String project, String version, VersionBuildsDetailed builds) {
+        public record VersionBuildsDetailed(Optional<BuildController.BuildResponse> latest,
+                                            List<BuildController.BuildResponse> all) {
+        }
     }
 }

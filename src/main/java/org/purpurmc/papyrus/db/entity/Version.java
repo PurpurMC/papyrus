@@ -1,7 +1,6 @@
 package org.purpurmc.papyrus.db.entity;
 
 import jakarta.annotation.Nonnull;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

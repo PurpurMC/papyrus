@@ -9,9 +9,6 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 @ControllerAdvice
 public class Advice {
-    private record ErrorResponse(String error) {
-    }
-
     @ExceptionHandler(BuildAlreadyExists.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -73,5 +70,8 @@ public class Advice {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse noHandlerFound() {
         return new ErrorResponse("endpoint not found");
+    }
+
+    private record ErrorResponse(String error) {
     }
 }

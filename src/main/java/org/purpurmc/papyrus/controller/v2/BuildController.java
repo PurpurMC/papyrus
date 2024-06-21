@@ -83,19 +83,6 @@ public class BuildController {
         return new BuildResponse(project.getName(), version.getName(), build.getName(), build.getResult().toString(), build.getTimestamp(), build.getDuration(), responseCommits, responseMetadata, build.getHash());
     }
 
-    public record BuildResponse(String project,
-                                String version,
-                                String build,
-                                String result,
-                                long timestamp,
-                                long duration,
-                                List<BuildCommits> commits,
-                                Map<String, String> metadata,
-                                String md5) {
-        public record BuildCommits(String author, String email, String description, String hash, long timestamp) {
-        }
-    }
-
     @GetMapping("/{build}/download")
     @ResponseBody
     @Operation(summary = "Download a build")
@@ -132,5 +119,18 @@ public class BuildController {
                 .contentLength(resource.contentLength())
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
                 .body(resource);
+    }
+
+    public record BuildResponse(String project,
+                                String version,
+                                String build,
+                                String result,
+                                long timestamp,
+                                long duration,
+                                List<BuildCommits> commits,
+                                Map<String, String> metadata,
+                                String md5) {
+        public record BuildCommits(String author, String email, String description, String hash, long timestamp) {
+        }
     }
 }
