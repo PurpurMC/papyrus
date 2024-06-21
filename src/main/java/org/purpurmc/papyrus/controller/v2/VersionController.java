@@ -3,10 +3,12 @@ package org.purpurmc.papyrus.controller.v2;
 import io.swagger.v3.oas.annotations.Operation;
 import org.purpurmc.papyrus.db.entity.Build;
 import org.purpurmc.papyrus.db.entity.Commit;
+import org.purpurmc.papyrus.db.entity.Metadata;
 import org.purpurmc.papyrus.db.entity.Project;
 import org.purpurmc.papyrus.db.entity.Version;
 import org.purpurmc.papyrus.db.repository.BuildRepository;
 import org.purpurmc.papyrus.db.repository.CommitRepository;
+import org.purpurmc.papyrus.db.repository.MetadataRepository;
 import org.purpurmc.papyrus.db.repository.ProjectRepository;
 import org.purpurmc.papyrus.db.repository.VersionRepository;
 import org.purpurmc.papyrus.exception.ProjectNotFound;
@@ -20,8 +22,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -31,13 +34,15 @@ public class VersionController {
     private final VersionRepository versionRepository;
     private final BuildRepository buildRepository;
     private final CommitRepository commitRepository;
+    private final MetadataRepository metadataRepository;
 
     @Autowired
-    public VersionController(ProjectRepository projectRepository, VersionRepository versionRepository, BuildRepository buildRepository, CommitRepository commitRepository) {
+    public VersionController(ProjectRepository projectRepository, VersionRepository versionRepository, BuildRepository buildRepository, CommitRepository commitRepository, MetadataRepository metadataRepository) {
         this.projectRepository = projectRepository;
         this.versionRepository = versionRepository;
         this.buildRepository = buildRepository;
         this.commitRepository = commitRepository;
+        this.metadataRepository = metadataRepository;
     }
 
     @GetMapping("/{version}")
@@ -80,18 +85,22 @@ public class VersionController {
     }
 
     private record VersionResponseDetailed(String project, String version, VersionBuildsDetailed builds) {
-        public record VersionBuildsDetailed(Optional<BuildController.BuildResponse> latest, List<BuildController.BuildResponse> all) {
+        public record VersionBuildsDetailed(Optional<BuildController.BuildResponse> latest,
+                                            List<BuildController.BuildResponse> all) {
         }
     }
 
     private BuildController.BuildResponse convertToBuildResponse(Project project, Version version, Build build) {
         List<Commit> commits = commitRepository.findAllByBuild(build);
-        List<BuildController.BuildResponse.BuildCommits> responseCommits = new ArrayList<>();
+        List<BuildController.BuildResponse.BuildCommits> responseCommits = commits.stream().map(commit -> new BuildController.BuildResponse.BuildCommits(commit.getAuthor(), commit.getEmail(), commit.getDescription(), commit.getHash(), commit.getTimestamp())).toList();
 
-        for (Commit commit : commits) {
-            responseCommits.add(new BuildController.BuildResponse.BuildCommits(commit.getAuthor(), commit.getEmail(), commit.getDescription(), commit.getHash(), commit.getTimestamp()));
+        List<Metadata> metadata = metadataRepository.findByBuild(build);
+        Map<String, String> responseMetadata = new HashMap<>();
+
+        for (Metadata data : metadata) {
+            responseMetadata.put(data.getName(), data.getValue());
         }
 
-        return new BuildController.BuildResponse(project.getName(), version.getName(), build.getName(), build.getResult().toString(), build.getTimestamp(), build.getDuration(), responseCommits, build.getHash());
+        return new BuildController.BuildResponse(project.getName(), version.getName(), build.getName(), build.getResult().toString(), build.getTimestamp(), build.getDuration(), responseCommits, responseMetadata, build.getHash());
     }
 }
