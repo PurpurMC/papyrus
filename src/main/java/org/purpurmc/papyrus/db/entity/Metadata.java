@@ -1,6 +1,7 @@
 package org.purpurmc.papyrus.db.entity;
 
 import jakarta.annotation.Nonnull;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,8 +24,9 @@ public class Metadata {
     private String name;
 
     @Nonnull
+    @Column(name = "P_VALUE")
     private String value;
-
+    
     @Nonnull
     @ManyToOne
     @JoinColumn(name = "BUILD_ID", referencedColumnName = "ID")

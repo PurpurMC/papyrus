@@ -2,7 +2,7 @@ create table metadata
 (
     id       uuid         not null,
     name     varchar(255) not null,
-    value    text         not null,
+    p_value  text         not null, // value is a reserved value
     build_id uuid         not null,
     primary key (id),
     constraint UniqueNameAndBuild unique (build_id, name)
