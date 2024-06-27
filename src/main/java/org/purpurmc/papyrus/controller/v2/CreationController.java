@@ -6,12 +6,14 @@ import org.purpurmc.papyrus.db.entity.Build;
 import org.purpurmc.papyrus.db.entity.Commit;
 import org.purpurmc.papyrus.db.entity.CreationState;
 import org.purpurmc.papyrus.db.entity.File;
+import org.purpurmc.papyrus.db.entity.Metadata;
 import org.purpurmc.papyrus.db.entity.Project;
 import org.purpurmc.papyrus.db.entity.Version;
 import org.purpurmc.papyrus.db.repository.BuildRepository;
 import org.purpurmc.papyrus.db.repository.CommitRepository;
 import org.purpurmc.papyrus.db.repository.CreationStateRepository;
 import org.purpurmc.papyrus.db.repository.FileRepository;
+import org.purpurmc.papyrus.db.repository.MetadataRepository;
 import org.purpurmc.papyrus.db.repository.ProjectRepository;
 import org.purpurmc.papyrus.db.repository.VersionRepository;
 import org.purpurmc.papyrus.exception.BuildAlreadyExists;
@@ -33,7 +35,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,6 +50,7 @@ public class CreationController {
     private final VersionRepository versionRepository;
     private final BuildRepository buildRepository;
     private final CommitRepository commitRepository;
+    private final MetadataRepository metadataRepository;
     private final FileRepository fileRepository;
     private final CreationStateRepository creationStateRepository;
 
@@ -56,6 +61,7 @@ public class CreationController {
             VersionRepository versionRepository,
             BuildRepository buildRepository,
             CommitRepository commitRepository,
+            MetadataRepository metadataRepository,
             FileRepository fileRepository,
             CreationStateRepository creationStateRepository
     ) {
@@ -64,6 +70,7 @@ public class CreationController {
         this.versionRepository = versionRepository;
         this.buildRepository = buildRepository;
         this.commitRepository = commitRepository;
+        this.metadataRepository = metadataRepository;
         this.fileRepository = fileRepository;
         this.creationStateRepository = creationStateRepository;
     }
@@ -106,22 +113,18 @@ public class CreationController {
             commitRepository.saveAll(body.commits.stream().map(commit -> new Commit(build, commit.author, commit.email, commit.description, commit.hash, commit.timestamp)).toList());
         }
 
+        if (body.metadata != null) {
+            List<Metadata> metadata = new ArrayList<>();
+            body.metadata.forEach((name, value) -> metadata.add(new Metadata(build, name, value)));
+            metadataRepository.saveAll(metadata);
+        }
+
         if (ready == 1) {
             return new CreateBuild(null);
         }
 
         CreationState id = creationStateRepository.save(new CreationState(build, body.fileExtension));
         return new CreateBuild(id.getId().toString());
-    }
-
-    private record CreateBuildBody(String project, String version, String build, Build.BuildResult result,
-                                   long timestamp, long duration, List<CommitBody> commits,
-                                   String fileExtension) {
-        public record CommitBody(String author, String email, String description, String hash, long timestamp) {
-        }
-    }
-
-    private record CreateBuild(String stateKey) {
     }
 
     @PostMapping("/upload")
@@ -184,5 +187,21 @@ public class CreationController {
         if (!parts[1].equals(configuration.getAuthToken())) {
             throw new InvalidAuthToken();
         }
+    }
+
+    private record CreateBuildBody(String project,
+                                   String version,
+                                   String build,
+                                   Build.BuildResult result,
+                                   long timestamp,
+                                   long duration,
+                                   List<CommitBody> commits,
+                                   Map<String, String> metadata,
+                                   String fileExtension) {
+        public record CommitBody(String author, String email, String description, String hash, long timestamp) {
+        }
+    }
+
+    private record CreateBuild(String stateKey) {
     }
 }

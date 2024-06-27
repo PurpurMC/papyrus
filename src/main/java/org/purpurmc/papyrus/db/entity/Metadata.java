@@ -1,6 +1,7 @@
 package org.purpurmc.papyrus.db.entity;
 
 import jakarta.annotation.Nonnull;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,8 +14,8 @@ import jakarta.persistence.UniqueConstraint;
 import java.util.UUID;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "UniqueNameAndProject", columnNames = {"NAME", "PROJECT_ID"}))
-public class Version {
+@Table(uniqueConstraints = @UniqueConstraint(name = "UniqueNameAndBuild", columnNames = {"NAME", "BUILD_ID"}))
+public class Metadata {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -23,19 +24,28 @@ public class Version {
     private String name;
 
     @Nonnull
+    @Column(name = "P_VALUE")
+    private String value;
+    
+    @Nonnull
     @ManyToOne
-    @JoinColumn(name = "PROJECT_ID", referencedColumnName = "ID")
-    private Project project;
+    @JoinColumn(name = "BUILD_ID", referencedColumnName = "ID")
+    private Build build;
 
-    public Version() {
+    public Metadata(Build build, String name, String value) {
+        this.build = build;
+        this.name = name;
+        this.value = value;
     }
 
-    public Version(Project project, String name) {
-        this.project = project;
-        this.name = name;
+    public Metadata() {
     }
 
     public String getName() {
-        return this.name;
+        return name;
+    }
+
+    public String getValue() {
+        return value;
     }
 }
