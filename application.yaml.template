@@ -13,4 +13,4 @@ app:
   api-url: { api_url }
 
   enable-cors: false
-  allowed-origins: *
+  allowed-origins: "*"
