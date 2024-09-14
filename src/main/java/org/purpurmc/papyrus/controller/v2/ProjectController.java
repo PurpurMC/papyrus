@@ -1,5 +1,6 @@
 package org.purpurmc.papyrus.controller.v2;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,6 +69,7 @@ public class ProjectController {
         return new ProjectResponse(project.getName(), responseMetadata, versions.stream().map(Version::getName).toList());
     }
 
+    @Hidden
     @PutMapping("/{project}/metadata")
     @ResponseBody
     public ResponseEntity<String> updateProjectMetadata(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @PathVariable("project") String projectName, @RequestBody UpdateMetadataBody body) {

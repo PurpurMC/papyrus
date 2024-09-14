@@ -1,5 +1,6 @@
 package org.purpurmc.papyrus.controller.v2;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import org.purpurmc.papyrus.config.AppConfiguration;
 import org.purpurmc.papyrus.db.entity.Build;
@@ -125,6 +126,7 @@ public class BuildController {
                 .body(resource);
     }
 
+    @Hidden
     @PutMapping("/{build}/metadata")
     @ResponseBody
     public ResponseEntity<String> updateBuildMetadata(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @PathVariable("project") String projectName, @PathVariable("version") String versionName, @PathVariable("build") String buildName, @RequestBody UpdateMetadataBody body) {
