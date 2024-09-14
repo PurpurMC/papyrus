@@ -47,4 +47,8 @@ public class ProjectMetadata {
     public String getValue() {
         return value;
     }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
 }
