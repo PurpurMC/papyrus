@@ -1,8 +1,12 @@
 package org.purpurmc.papyrus.controller.v2;
 
 import io.swagger.v3.oas.annotations.Operation;
+import java.util.HashMap;
+import java.util.Map;
 import org.purpurmc.papyrus.db.entity.Project;
+import org.purpurmc.papyrus.db.entity.ProjectMetadata;
 import org.purpurmc.papyrus.db.entity.Version;
+import org.purpurmc.papyrus.db.repository.ProjectMetadataRepository;
 import org.purpurmc.papyrus.db.repository.ProjectRepository;
 import org.purpurmc.papyrus.db.repository.VersionRepository;
 import org.purpurmc.papyrus.exception.ProjectNotFound;
@@ -19,12 +23,14 @@ import java.util.List;
 @RequestMapping("/v2")
 public class ProjectController {
     private final ProjectRepository projectRepository;
+    private final ProjectMetadataRepository projectMetadataRepository;
     private final VersionRepository versionRepository;
 
     @Autowired
-    public ProjectController(ProjectRepository projectRepository, VersionRepository versionRepository) {
+    public ProjectController(ProjectRepository projectRepository, VersionRepository versionRepository, ProjectMetadataRepository projectMetadataRepository) {
         this.projectRepository = projectRepository;
         this.versionRepository = versionRepository;
+        this.projectMetadataRepository = projectMetadataRepository;
     }
 
     @GetMapping
@@ -42,12 +48,19 @@ public class ProjectController {
         Project project = projectRepository.findByName(projectName).orElseThrow(ProjectNotFound::new);
         List<Version> versions = versionRepository.findAllByProject(project);
 
-        return new ProjectResponse(project.getName(), versions.stream().map(Version::getName).toList());
+        List<ProjectMetadata> metadata = projectMetadataRepository.findByProject(project);
+        Map<String, String> responseMetadata = new HashMap<>();
+
+        for (ProjectMetadata data : metadata) {
+            responseMetadata.put(data.getName(), data.getValue());
+        }
+
+        return new ProjectResponse(project.getName(), responseMetadata, versions.stream().map(Version::getName).toList());
     }
 
     private record ProjectsResponse(List<String> projects) {
     }
 
-    private record ProjectResponse(String project, List<String> versions) {
+    private record ProjectResponse(String project, Map<String, String> metadata, List<String> versions) {
     }
 }
