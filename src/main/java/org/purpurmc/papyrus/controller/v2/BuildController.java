@@ -18,6 +18,7 @@ import org.purpurmc.papyrus.exception.BuildNotFound;
 import org.purpurmc.papyrus.exception.FileDownloadError;
 import org.purpurmc.papyrus.exception.ProjectNotFound;
 import org.purpurmc.papyrus.exception.VersionNotFound;
+import org.purpurmc.papyrus.util.AuthUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -27,6 +28,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -121,6 +125,62 @@ public class BuildController {
                 .body(resource);
     }
 
+    @PutMapping("/{build}/metadata")
+    @ResponseBody
+    public ResponseEntity<String> updateBuildMetadata(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @PathVariable("project") String projectName, @PathVariable("version") String versionName, @PathVariable("build") String buildName, @RequestBody UpdateMetadataBody body) {
+        AuthUtil.requireAuth(configuration, authHeader);
+
+        Project project = projectRepository.findByName(projectName).orElseThrow(ProjectNotFound::new);
+        Version version = versionRepository.findByProjectAndName(project, versionName).orElseThrow(VersionNotFound::new);
+        Build build = (buildName.equals("latest")
+                ? buildRepository.findLatestByVersionAndFileNotNull(version)
+                : buildRepository.findByVersionAndNameAndReady(version, buildName)
+        ).orElseThrow(BuildNotFound::new);
+
+        List<Metadata> oldMetadata = metadataRepository.findByBuild(build);
+        Map<String, String> newMetadata = body.metadata();
+
+        if (newMetadata.isEmpty()) {
+            metadataRepository.deleteAll(oldMetadata);
+            return ResponseEntity.ok("");
+        }
+
+        if (oldMetadata.isEmpty()) {
+            List<Metadata> metadata = body.metadata().entrySet().stream()
+                    .map(entry -> new Metadata(build, entry.getKey(), entry.getValue()))
+                    .toList();
+            metadataRepository.saveAll(metadata);
+            return ResponseEntity.ok("");
+        }
+
+        List<Metadata> updatedMetadata = oldMetadata.stream()
+                .filter(metadata -> newMetadata.containsKey(metadata.getName()))
+                .filter(metadata -> !newMetadata.get(metadata.getName()).equals(metadata.getValue()))
+                .map(metadata -> {
+                    metadata.setValue(newMetadata.get(metadata.getName()));
+                    return metadata;
+                })
+                .toList();
+        List<Metadata> deletedMetadata = oldMetadata.stream()
+                .filter(metadata -> !newMetadata.containsKey(metadata.getName()))
+                .toList();
+
+        List<String> existingKeys = oldMetadata.stream().map(Metadata::getName).toList();
+        List<Metadata> addedMetadata = newMetadata.entrySet().stream()
+                .filter(entry -> !existingKeys.contains(entry.getKey()))
+                .map(entry -> new Metadata(build, entry.getKey(), entry.getValue()))
+                .toList();
+
+        if (!deletedMetadata.isEmpty()) {
+            metadataRepository.deleteAll(deletedMetadata);
+        }
+
+        metadataRepository.saveAll(updatedMetadata);
+        metadataRepository.saveAll(addedMetadata);
+
+        return ResponseEntity.ok("");
+    }
+
     public record BuildResponse(String project,
                                 String version,
                                 String build,
@@ -132,5 +192,8 @@ public class BuildController {
                                 String md5) {
         public record BuildCommits(String author, String email, String description, String hash, long timestamp) {
         }
+    }
+
+    private record UpdateMetadataBody(Map<String, String> metadata) {
     }
 }
