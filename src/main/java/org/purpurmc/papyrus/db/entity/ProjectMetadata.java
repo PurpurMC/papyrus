@@ -10,12 +10,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.util.UUID;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "UniqueNameAndBuild", columnNames = {"NAME", "BUILD_ID"}))
-public class Metadata {
+@Table(uniqueConstraints = @UniqueConstraint(name = "UniqueMetadataNameAndProject", columnNames = {"NAME", "PROJECT_ID"}))
+public class ProjectMetadata {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -26,19 +25,19 @@ public class Metadata {
     @Nonnull
     @Column(name = "P_VALUE")
     private String value;
-    
+
     @Nonnull
     @ManyToOne
-    @JoinColumn(name = "BUILD_ID", referencedColumnName = "ID")
-    private Build build;
+    @JoinColumn(name = "PROJECT_ID", referencedColumnName = "ID")
+    private Project project;
 
-    public Metadata(Build build, String name, String value) {
-        this.build = build;
+    public ProjectMetadata(Project project, String name, String value) {
+        this.project = project;
         this.name = name;
         this.value = value;
     }
 
-    public Metadata() {
+    public ProjectMetadata() {
     }
 
     public String getName() {
