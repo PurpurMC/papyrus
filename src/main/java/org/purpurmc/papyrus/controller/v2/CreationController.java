@@ -18,8 +18,8 @@ import org.purpurmc.papyrus.db.repository.ProjectRepository;
 import org.purpurmc.papyrus.db.repository.VersionRepository;
 import org.purpurmc.papyrus.exception.BuildAlreadyExists;
 import org.purpurmc.papyrus.exception.FileUploadError;
-import org.purpurmc.papyrus.exception.InvalidAuthToken;
 import org.purpurmc.papyrus.exception.InvalidStateKey;
+import org.purpurmc.papyrus.util.AuthUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -78,7 +78,7 @@ public class CreationController {
     @PostMapping
     @ResponseBody
     public CreateBuild createBuild(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestBody CreateBuildBody body) {
-        this.requireAuth(authHeader);
+        AuthUtil.requireAuth(configuration, authHeader);
 
         Project project = null;
         Version version = null;
@@ -130,7 +130,7 @@ public class CreationController {
     @PostMapping("/upload")
     @ResponseBody
     public ResponseEntity<String> uploadFile(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestParam("stateKey") String stateKey, @RequestParam("file") MultipartFile uploadFile) {
-        this.requireAuth(authHeader);
+        AuthUtil.requireAuth(configuration, authHeader);
 
         CreationState state;
         try {
@@ -172,21 +172,6 @@ public class CreationController {
 
         creationStateRepository.delete(state);
         return ResponseEntity.ok("");
-    }
-
-    private void requireAuth(String authHeader) {
-        String[] parts = authHeader.trim().split(" ");
-        if (parts.length != 2) {
-            throw new InvalidAuthToken();
-        }
-
-        if (!parts[0].equals("Basic")) {
-            throw new InvalidAuthToken();
-        }
-
-        if (!parts[1].equals(configuration.getAuthToken())) {
-            throw new InvalidAuthToken();
-        }
     }
 
     private record CreateBuildBody(String project,
