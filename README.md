@@ -8,7 +8,5 @@ API: https://api.purpurmc.org
 
 OpenAPI Spec: https://api.purpurmc.org/openapi
 
-SwaggerDocs: https://api.purpurmc.org/docs/
+SwaggerDocs: https://api.purpurmc.org/
 
-## Dev Environment
-todo
