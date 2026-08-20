@@ -28,9 +28,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
 
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
     implementation("org.flywaydb:flyway-core")
     runtimeOnly("com.h2database:h2")
 }
